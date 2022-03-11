@@ -15,7 +15,7 @@ IzhikevichActivation::IzhikevichActivation(
     state   = nc::ones<double>(dim) * param_e;
 }
 
-nc::NdArray<double> IzhikevichActivation::map(nc::NdArray<double> input, double step = .01)
+nc::NdArray<double> IzhikevichActivation::operator()(nc::NdArray<double> input, double step = .01)
 {
     auto vec_scale = nc::ones<double>(this->dim);
     auto _state = this->state + step * ( 

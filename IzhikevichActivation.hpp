@@ -23,7 +23,7 @@ public:
         double b, double c,
         double d, double e, double dim);
 
-    nc::NdArray<double> map(nc::NdArray<double> input, double step) override;
+    nc::NdArray<double> operator()(nc::NdArray<double> input, double step) override;
 };
 
 };

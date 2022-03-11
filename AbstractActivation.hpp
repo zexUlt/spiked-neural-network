@@ -7,9 +7,8 @@ namespace CxxSDNN{
 class AbstractActivation
 {
 public:
-    AbstractActivation() = default;
-    virtual nc::NdArray<double> map(nc::NdArray<double> input, double step) = 0;
-
+    virtual nc::NdArray<double> operator()(nc::NdArray<double> input, double step = 0) = 0;
+    virtual ~AbstractActivation(){}
 };
 
 };

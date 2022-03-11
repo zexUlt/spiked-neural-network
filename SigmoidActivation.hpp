@@ -15,7 +15,7 @@ private:
 
 public:
     explicit SigmoidActivation(double a, double b, double c, double d);
-    nc::NdArray<double> map(nc::NdArray<double> input, double step) override;
+    nc::NdArray<double> operator()(nc::NdArray<double> input, double step) override;
 };
 
 };

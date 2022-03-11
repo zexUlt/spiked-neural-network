@@ -8,7 +8,7 @@ SigmoidActivation::SigmoidActivation(double a, double b, double c, double d) :
 
 }
 
-nc::NdArray<double> SigmoidActivation::map(nc::NdArray<double> input, double step)
+nc::NdArray<double> SigmoidActivation::operator()(nc::NdArray<double> input, double step = -1.)
 {
     return this->param_a / (
         this->param_b + this->param_c * nc::exp(this->param_d * input)
