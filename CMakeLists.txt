@@ -4,7 +4,7 @@ project("spiked-neural-network" CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp Utility.hpp)
 
 find_package(NumCpp 2.6.2 REQUIRED)
 target_link_libraries(${PROJECT_NAME} NumCpp::NumCpp)
