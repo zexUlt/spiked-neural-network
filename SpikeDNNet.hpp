@@ -1,7 +1,9 @@
 #pragma once
 
 #include "NumCpp.hpp"
-#include "AbstractActivation.hpp"
+
+
+class AbstractActivation;
 
 namespace CxxSDNN{
 
@@ -17,17 +19,17 @@ private:
     nc::NdArray<double> mat_W_2;
     nc::NdArray<double> init_mat_W_1;
     nc::NdArray<double> init_mat_W_2;
-    nc::NdArray<double> array_hist_W_1;
-    nc::NdArray<double> array_hist_W_2;
+    nc::DataCube<double> array_hist_W_1;
+    nc::DataCube<double> array_hist_W_2;
     nc::NdArray<double> smoothed_W_1;
     nc::NdArray<double> smoothed_W_2;
-    AbstractActivation afunc_1;
-    AbstractActivation afunc_2;
+    AbstractActivation& afunc_1;
+    AbstractActivation& afunc_2;
 
 public:
     explicit SpikeDNNet(
-        std::function<nc::NdArray<double>(nc::NdArray<double>, double)> act_func_1,
-        std::function<nc::NdArray<double>(nc::NdArray<double>, double)> act_func_2,
+        AbstractActivation& act_func_1,
+        AbstractActivation& act_func_2,
         nc::NdArray<double> mat_W_1,
         nc::NdArray<double> mat_W_2,
         int dim = 2,
@@ -37,9 +39,9 @@ public:
         nc::NdArray<double> mat_K_2 = .15 * nc::diag(nc::NdArray<double>({1., 1.}))
     );
 
-    static nc::NdArray<double> moving_average(nc::NdArray<double> x, int w = 2);
+    static nc::NdArray<double> moving_average(nc::NdArray<double> x, nc::uint32 w = 2);
 
-    nc::NdArray<nc::NdArray<double>> smooth(nc::NdArray<nc::NdArray<double>> x, int w = 2);
+    nc::DataCube<double> smooth(nc::DataCube<double> x, nc::uint32 w = 2);
 
     nc::NdArray<double> fit(
         nc::NdArray<double> vec_x,
