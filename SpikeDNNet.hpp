@@ -2,7 +2,6 @@
 
 #include "NumCpp.hpp"
 
-
 class AbstractActivation;
 
 namespace CxxSDNN{
@@ -21,8 +20,8 @@ private:
     nc::NdArray<double> init_mat_W_2;
     nc::DataCube<double> array_hist_W_1;
     nc::DataCube<double> array_hist_W_2;
-    nc::NdArray<double> smoothed_W_1;
-    nc::NdArray<double> smoothed_W_2;
+    nc::DataCube<double> smoothed_W_1;
+    nc::DataCube<double> smoothed_W_2;
     AbstractActivation& afunc_1;
     AbstractActivation& afunc_2;
 
