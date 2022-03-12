@@ -1,18 +1,46 @@
 #include "IzhikevichActivation.hpp"
 
-#include <iostream>
 
 using CxxSDNN::IzhikevichActivation;
 
 IzhikevichActivation::IzhikevichActivation(
-        double _izh_border = .18, double a = 2e-5, 
-        double b = 35e-3, double c = -55e-3,
-        double d = .05, double e = -65e-3, double _dim = 2.) :
+        double _izh_border, double a, 
+        double b, double c,
+        double d, double e, nc::uint32 _dim) :
         izh_border{_izh_border}, param_a{a}, param_b{b}, param_c{c},
         param_d{d}, param_e{e}, dim{dim}
 {
     control = nc::ones<double>(dim) * param_b * param_e;
     state   = nc::ones<double>(dim) * param_e;
+}
+
+IzhikevichActivation::IzhikevichActivation(
+        double _izh_border, double a, 
+        double b, double c,
+        double d, double e
+    ) : IzhikevichActivation(_izh_border, a, b, c, d, e, 2)
+{
+
+}
+
+IzhikevichActivation::IzhikevichActivation(
+        double _izh_border
+    ) : IzhikevichActivation(_izh_border, 2e-5, 35e-3, -55e-3, .05, -65e-3)
+{
+
+}
+
+IzhikevichActivation::IzhikevichActivation(
+        nc::uint32 dim
+    ) : IzhikevichActivation(.18, 2e-5, 35e-3, -55e-3, .05, -65e-3, dim)
+{
+
+}
+
+IzhikevichActivation::IzhikevichActivation() : 
+    IzhikevichActivation(.18, 2e-5, 35e-3, -55e-3, .05, -65e-3, 2u) 
+{
+    
 }
 
 nc::NdArray<double> IzhikevichActivation::operator()(nc::NdArray<double> input, double step = .01)
@@ -28,8 +56,6 @@ nc::NdArray<double> IzhikevichActivation::operator()(nc::NdArray<double> input, 
             this->param_b * this->state - this->control
         )
     );
-    
-    std::cout << nc::all(_state > this->izh_border);
 
     if(nc::all(_state > this->izh_border)[0]){
         this->state = vec_scale * this->param_c;
