@@ -2,9 +2,10 @@
 
 #include "NumCpp.hpp"
 
-class AbstractActivation;
 
 namespace CxxSDNN{
+
+class AbstractActivation;
 
 class SpikeDNNet
 {
@@ -22,13 +23,15 @@ private:
     nc::DataCube<double> array_hist_W_2;
     nc::DataCube<double> smoothed_W_1;
     nc::DataCube<double> smoothed_W_2;
-    AbstractActivation& afunc_1;
-    AbstractActivation& afunc_2;
+    AbstractActivation* afunc_1;
+    AbstractActivation* afunc_2;
+
+    // SpikeDNNet(){};
 
 public:
     explicit SpikeDNNet(
-        AbstractActivation& act_func_1,
-        AbstractActivation& act_func_2,
+        AbstractActivation* act_func_1,
+        AbstractActivation* act_func_2,
         nc::NdArray<double> mat_W_1,
         nc::NdArray<double> mat_W_2,
         int dim = 2,
@@ -37,6 +40,10 @@ public:
         nc::NdArray<double> mat_K_1 = .15 * nc::diag(nc::NdArray<double>({10., 1.})),
         nc::NdArray<double> mat_K_2 = .15 * nc::diag(nc::NdArray<double>({1., 1.}))
     );
+
+    SpikeDNNet(const SpikeDNNet& other);
+
+    SpikeDNNet& operator=(const SpikeDNNet& other);
 
     static nc::NdArray<double> moving_average(nc::NdArray<double> x, nc::uint32 w = 2);
 
