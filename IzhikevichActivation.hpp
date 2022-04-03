@@ -21,17 +21,20 @@ public:
     explicit IzhikevichActivation(
         double _izh_border, double a, 
         double b, double c,
-        double d, double e, nc::uint32 dim);
+        double d, double e, nc::uint32 _dim);
+
     explicit IzhikevichActivation(
         double _izh_border, double a, 
         double b, double c,
         double d, double e
     );
+
     explicit IzhikevichActivation(
         double _izh_border
     );
+
     explicit IzhikevichActivation(
-        nc::uint32 dim
+        nc::uint32 _dim
     );
 
     explicit IzhikevichActivation();

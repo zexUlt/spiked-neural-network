@@ -8,10 +8,10 @@ IzhikevichActivation::IzhikevichActivation(
         double b, double c,
         double d, double e, nc::uint32 _dim) :
         izh_border{_izh_border}, param_a{a}, param_b{b}, param_c{c},
-        param_d{d}, param_e{e}, dim{dim}
+        param_d{d}, param_e{e}, dim{_dim}
 {
-    control = nc::ones<double>(dim) * param_b * param_e;
-    state   = nc::ones<double>(dim) * param_e;
+    control = nc::ones<double>(1, dim) * param_b * param_e;
+    state   = nc::ones<double>(1, dim) * param_e;
 }
 
 IzhikevichActivation::IzhikevichActivation(
@@ -31,8 +31,8 @@ IzhikevichActivation::IzhikevichActivation(
 }
 
 IzhikevichActivation::IzhikevichActivation(
-        nc::uint32 dim
-    ) : IzhikevichActivation(.18, 2e-5, 35e-3, -55e-3, .05, -65e-3, dim)
+        nc::uint32 _dim
+    ) : IzhikevichActivation(.18, 2e-5, 35e-3, -55e-3, .05, -65e-3, _dim)
 {
 
 }
@@ -45,10 +45,10 @@ IzhikevichActivation::IzhikevichActivation() :
 
 nc::NdArray<double> IzhikevichActivation::operator()(nc::NdArray<double> input, double step = .01)
 {
-    auto vec_scale = nc::ones<double>(this->dim);
+    auto vec_scale = nc::ones<double>(1, this->dim);
+    auto self_state_norm = nc::matmul(this->state, this->state)[0]; 
     auto _state = this->state + step * ( 
-        .04 * nc::matmul(this->state, this->state) + 
-        5. * this->state + 140. - this->control + input
+        .04 * self_state_norm + 5. * this->state + 140. - this->control + input
     );
     
     this->control += step * (
