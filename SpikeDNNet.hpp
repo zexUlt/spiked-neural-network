@@ -60,6 +60,8 @@ public:
         nc::NdArray<double> init_state,
         nc::NdArray<double> vec_u,
         double step = .01);
+
+    nc::DataCube<double> get_weights(nc::uint8 idx) const;
 };
 
 };

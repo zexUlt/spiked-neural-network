@@ -100,10 +100,12 @@ nc::NdArray<double> SpikeDNNet::fit(
 
         for(int i = 0; i < nt - 1; ++i){
             auto delta = vec_est - vec_x;
-
+            
             auto neuron_out_1 = this->afunc_1->operator()(vec_est(i, vec_est.cSlice()), 0.01);
             auto neuron_out_2 = this->afunc_2->operator()(vec_est(i, vec_est.cSlice()), 0.01);
+            
 
+            // Returns copy of an array. Need to re-assign to the original one instead
             vec_est(i + 1, vec_est.cSlice()) = vec_est(i, vec_est.cSlice()) + 
                 step * (
                     nc::matmul(this->mat_A, vec_est(i, vec_est.cSlice()).transpose()) + 
@@ -147,7 +149,7 @@ nc::NdArray<double> SpikeDNNet::fit(
             this->array_hist_W_1[i] = this->mat_W_1.copy();
             this->array_hist_W_2[i] = this->mat_W_2.copy();
         }
-
+        vec_est.tofile("../vec_est_" + std::to_string(e), ';');
         this->smoothed_W_1 = this->smooth(this->array_hist_W_1, k_points);
         this->smoothed_W_2 = this->smooth(this->array_hist_W_2, k_points);
     }
@@ -198,3 +200,18 @@ nc::NdArray<double> SpikeDNNet::predict(
 
     return vec_est;
 }
+
+
+nc::DataCube<double> SpikeDNNet::get_weights(nc::uint8 idx) const
+{
+    if(idx == 0){
+        return this->array_hist_W_1;
+    }
+
+    if(idx == 1){
+        return this->array_hist_W_2;
+    }
+
+    return nc::DataCube<double>();
+}
+
