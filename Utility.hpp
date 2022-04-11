@@ -68,7 +68,7 @@ public:
     }
 
     template<typename dtype>
-    static ValidationResults dnn_validate(CxxSDNN::SpikeDNNet& dnn, vl_tr_map<dtype> folds)
+    static ValidationResults dnn_validate(CxxSDNN::SpikeDNNet& dnn, vl_tr_map<dtype> folds, nc::uint16 n_epochs, nc::uint16 k_points)
     {
         ValidationResults results;        
 
@@ -78,7 +78,7 @@ public:
         auto vl_target = folds["vl"].first;
         auto vl_control = folds["vl"].second;
 
-        auto target_est = dnn.fit(tr_target, tr_control);
+        auto target_est = dnn.fit(tr_target, tr_control, 0.01, n_epochs, k_points);
 
         std::cout << target_est;
 
