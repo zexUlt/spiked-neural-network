@@ -1,17 +1,17 @@
 #!/bin/sh
 
-REBUILD=0
+RECONFIG=0
 
 if [ $# -gt 0 ]; then
     case $1 in
-        -r|--rebuild)
-            REBUILD=1
+        -r|--reconfigure)
+            RECONFIG=1
             ;;
         -h|--help)
             echo "Configuration script."
             echo "Options:             "
-            echo "       -r, --rebuild = Clean build folder before new build. DEFAULT=OFF."
-            echo "       -h, --help    = Show this help and exit."
+            echo "       -r, --reconfigure = Generate configuration from scratch. DEFAULT=OFF."
+            echo "       -h, --help        = Show this help and exit."
             exit 0
             ;;
         -*|--*)
@@ -21,8 +21,8 @@ if [ $# -gt 0 ]; then
     esac
 fi
 
-if [ ${REBUILD} -eq 1 ]; then
-    echo "Cleaning previous build data..."
+if [ ${RECONFIG} -eq 1 ]; then
+    echo "Cleaning previous configuration data..."
     rm -r ./build
 fi
 
