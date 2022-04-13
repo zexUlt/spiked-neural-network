@@ -1,7 +1,8 @@
 #pragma once
 
-#include "NumCpp.hpp"
 #include "SpikeDNNet.hpp"
+
+#include <xtensor/xview.hpp>
 
 #include <map>
 #include <string>
@@ -12,17 +13,17 @@ class UtilityFunctionLibrary
 {
 public:
     template<typename dtype>
-    using vl_tr_map = std::map< std::string, std::pair< nc::NdArray<dtype>, nc::NdArray<dtype> > >;
+    using vl_tr_map = std::map< std::string, std::pair< xt::xarray<dtype>, xt::xarray<dtype> > >;
 
     struct ValidationResults
     {
         std::pair<double, double> mse_res;
         std::pair<double, double> mae_res;
         std::pair<double, double> smae_res;
-        std::vector<nc::NdArray<double>> tr_est;
-        std::vector<nc::NdArray<double>> vl_res;
-        nc::DataCube<double> W_1;
-        nc::DataCube<double> W_2;
+        std::vector<xt::xarray<double>> tr_est;
+        std::vector<xt::xarray<double>> vl_res;
+        xt::xarray<double> W_1;
+        xt::xarray<double> W_2;
 
         friend std::ostream& operator<<(std::ostream& out, UtilityFunctionLibrary::ValidationResults res)
         {
@@ -37,14 +38,14 @@ public:
 
 
     template<typename dtype>
-    static nc::NdArray<dtype> convolveValid(const nc::NdArray<dtype>& f, const nc::NdArray<dtype>& g)
+    static xt::xarray<dtype> convolveValid(const xt::xarray<dtype>& f, const xt::xarray<dtype>& g)
     {
         const auto nf = f.size();
         const auto ng = g.size();
         const auto& min_v = (nf < ng) ? f : g;
         const auto& max_v = (nf < ng) ? g : f;
         const auto n = std::max(nf, ng) - std::min(nf, ng) + 1;
-        nc::NdArray<dtype> out(1, n);
+        xt::xarray<dtype> out(1, n);
 
         for(auto i(0u); i < n; ++i){
             for(int j(min_v.size() - 1), k(i); j >=0; --j, ++k){
@@ -55,20 +56,9 @@ public:
         return out;
     }
 
-    template<typename dtype>
-    static nc::DataCube<dtype> construct_fill_DC(const nc::NdArray<dtype>& init_val, nc::uint32 capacity)
-    {
-        nc::DataCube<dtype> out(capacity);
-
-        for(int i = 0; i < capacity; ++i){
-            out.push_back(init_val);
-        }
-
-        return out;
-    }
 
     template<typename dtype>
-    static ValidationResults dnn_validate(CxxSDNN::SpikeDNNet& dnn, vl_tr_map<dtype> folds, nc::uint16 n_epochs, nc::uint16 k_points)
+    static ValidationResults dnn_validate(CxxSDNN::SpikeDNNet& dnn, vl_tr_map<dtype> folds, std::uint16_t n_epochs, std::uint16_t k_points)
     {
         ValidationResults results;        
 
@@ -82,21 +72,21 @@ public:
 
         std::cout << target_est;
 
-        auto vl_pred = dnn.predict(nc::NdArray<double>({target_est(target_est.shape().rows - 1, 0)}), vl_control);
+        auto vl_pred = dnn.predict(xt::view(tr_target, -1, 0), vl_control);
 
         results.mse_res = std::make_pair(
-            UtilityFunctionLibrary::mean_squared_error(tr_target(tr_target.rSlice(), 0), target_est(target_est.rSlice(), 0)), 
-            UtilityFunctionLibrary::mean_squared_error(vl_target(vl_target.rSlice(), 0), vl_pred(vl_pred.rSlice(), 0))
+            UtilityFunctionLibrary::mean_squared_error<double>(xt::col(tr_target, 0), xt::col(target_est, 0)), 
+            UtilityFunctionLibrary::mean_squared_error<double>(xt::col(vl_target, 0), xt::col(vl_pred, 0))
         );
 
         results.mae_res = std::make_pair(
-            UtilityFunctionLibrary::mean_absolute_error(tr_target(tr_target.rSlice(), 0), target_est(target_est.rSlice(), 0)),
-            UtilityFunctionLibrary::mean_absolute_error(vl_target(vl_target.rSlice(), 0), vl_pred(vl_pred.rSlice(), 0))
+            UtilityFunctionLibrary::mean_absolute_error<double>(xt::col(tr_target, 0), xt::col(target_est, 0)),
+            UtilityFunctionLibrary::mean_absolute_error<double>(xt::col(vl_target, 0), xt::col(vl_pred, 0))
         );
 
         results.smae_res = std::make_pair(
-            results.mae_res.first / nc::mean(tr_target(tr_target.rSlice(), 0))[0],
-            results.mae_res.second / nc::mean(vl_target(vl_target.rSlice(), 0))[0]
+            (results.mae_res.first / xt::mean(xt::col(tr_target, 0)))(),
+            (results.mae_res.second / xt::mean(xt::col(vl_target, 0)))()
         );
 
         results.tr_est.emplace_back(target_est);
@@ -108,18 +98,18 @@ public:
     }
 
     template<typename dtype>
-    static double mean_squared_error(nc::NdArray<dtype> y_true, nc::NdArray<dtype> y_pred)
+    static double mean_squared_error(xt::xarray<dtype> y_true, xt::xarray<dtype> y_pred)
     {
-        auto output_errors = nc::average(nc::square(y_true - y_pred), nc::Axis::ROW);
+        auto output_errors = xt::average(xt::square(y_true - y_pred));
 
-        return nc::average(output_errors)[0];
+        return xt::average(output_errors)();
     }
 
     template<typename dtype>
-    static double mean_absolute_error(nc::NdArray<dtype> y_true, nc::NdArray<dtype> y_pred)
+    static double mean_absolute_error(xt::xarray<dtype> y_true, xt::xarray<dtype> y_pred)
     {
-        auto output_errors = nc::average(nc::abs(y_pred - y_true), nc::Axis::ROW);
+        auto output_errors = xt::average(xt::abs(y_pred - y_true));
 
-        return nc::average(output_errors)[0];
+        return xt::average(output_errors)();
     }
 };

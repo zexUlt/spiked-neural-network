@@ -2,6 +2,8 @@
 #include "SpikeDNNet.hpp"
 #include "Utility.hpp"
 
+#include <xtensor/xview.hpp>
+
 #include "debug_header.hpp"
 
 using CxxSDNN::SpikeDNNet;
@@ -9,13 +11,13 @@ using CxxSDNN::SpikeDNNet;
 SpikeDNNet::SpikeDNNet(
         AbstractActivation* act_func_1,
         AbstractActivation* act_func_2,
-        nc::NdArray<double> _mat_W_1,
-        nc::NdArray<double> _mat_W_2,
-        int dim,
-        nc::NdArray<double> _mat_A,
-        nc::NdArray<double> _mat_P,
-        nc::NdArray<double> _mat_K_1,
-        nc::NdArray<double> _mat_K_2
+        xt::xarray<double> _mat_W_1,
+        xt::xarray<double> _mat_W_2,
+        size_t dim,
+        xt::xarray<double> _mat_A,
+        xt::xarray<double> _mat_P,
+        xt::xarray<double> _mat_K_1,
+        xt::xarray<double> _mat_K_2
     ) :
     afunc_1{act_func_1}, afunc_2{act_func_2}, mat_A{_mat_A},
     mat_P{_mat_P}, mat_K_1{_mat_K_1}, mat_K_2{_mat_K_2},
@@ -47,112 +49,88 @@ SpikeDNNet& SpikeDNNet::operator=(const SpikeDNNet& other)
    return *this;
 }
 
-nc::NdArray<double> SpikeDNNet::moving_average(nc::NdArray<double> x, nc::uint32 w)
+xt::xarray<double> SpikeDNNet::moving_average(xt::xarray<double> x, std::uint32_t w)
 {
-    return UtilityFunctionLibrary::convolveValid(x, nc::ones<double>(1, w)) / static_cast<double>(w);
+    return UtilityFunctionLibrary::convolveValid<double>(x, xt::ones<double>({1u, w})) / static_cast<double>(w);
 }
 
-nc::DataCube<double> SpikeDNNet::smooth(nc::DataCube<double> x, nc::uint32 w)
+xt::xarray<double> SpikeDNNet::smooth(xt::xarray<double> x, std::uint32_t w)
 {
-    auto l = x.sizeZ();
-    auto m = x.shape().rows;
-    auto n = x.shape().cols;
-    auto new_sizeZ = l - w + nc::uint32(1);
-    auto new_x = UtilityFunctionLibrary::construct_fill_DC(nc::ones<double>(m, n), new_sizeZ);
+    auto l = x.shape(0);
+    auto m = x.shape(1);
+    auto n = x.shape(2);
+    auto new_sizeZ = l - w + 1u;
+    auto new_x = xt::ones<double>({new_sizeZ, m, n}); 
 
-    for(int i = 0; i < m; ++i){
-        for(int j = 0; j < n; ++j){
-            auto average = this->moving_average(x.sliceZAll(i, j), w);
-            for(int k = 0; k < new_sizeZ; ++k){
-                new_x[k](i, j) = average[k];
-            }
+    for(auto i = 0u; i < m; ++i){
+        for(auto j = 0u; j < n; ++j){
+            auto slice_x = xt::view(x, xt::all(), i, j);
+            auto m_av = moving_average(slice_x, w);
+            xt::view(new_x, xt::all(), i, j) = m_av;
         }
     }
 
     return new_x;
 }
 
-nc::NdArray<double> SpikeDNNet::fit(
-        nc::NdArray<double> vec_x,
-        nc::NdArray<double> vec_u,
+xt::xarray<double> SpikeDNNet::fit(
+        xt::xarray<double> vec_x,
+        xt::xarray<double> vec_u,
         double step,
-        int n_epochs,
-        int k_points)
+        std::uint32_t n_epochs,
+        std::uint32_t k_points)
 {
-    auto nt = vec_u.numRows();
-    auto vec_est = 0.1 * nc::ones<double>(nt, this->mat_dim);
+    auto nt = vec_u.shape(0);
+    auto vec_est = 0.1 * xt::ones<double>({nt, this->mat_dim});
 
-    this->mat_W_1 = this->init_mat_W_1.copy();
-    this->mat_W_2 = this->init_mat_W_2.copy();
+    this->mat_W_1 = this->init_mat_W_1;
+    this->mat_W_2 = this->init_mat_W_2;
 
-    this->array_hist_W_1 = UtilityFunctionLibrary::construct_fill_DC(nc::ones<double>(this->mat_dim), nt);
-    this->array_hist_W_2 = UtilityFunctionLibrary::construct_fill_DC(nc::ones<double>(this->mat_dim), nt);
+    this->array_hist_W_1 = xt::ones<double>({nt, this->mat_dim, this->mat_dim});
+    this->array_hist_W_2 = xt::ones<double>({nt, this->mat_dim, this->mat_dim});
 
     
 
     for(int e = 1; e < n_epochs + 1; ++e){
-        vec_x = nc::flipud(vec_x);
-        vec_u = nc::flipud(vec_u);  
+        vec_x = xt::flip(vec_x, 0);
+        vec_u = xt::flip(vec_u, 0);  
         
         if(e > 1){
-            this->mat_W_1 = this->smoothed_W_1.back().copy();
-            this->mat_W_2 = this->smoothed_W_2.back().copy();
+            this->mat_W_1 = xt::view(this->smoothed_W_1, -1);
+            this->mat_W_2 = xt::view(this->smoothed_W_2, -1);
         }
 
         for(int i = 0; i < nt - 1; ++i){
             auto delta = vec_est - vec_x;
-            
-            auto neuron_out_1 = this->afunc_1->operator()(vec_est(i, vec_est.cSlice()), 0.01);
-            auto neuron_out_2 = this->afunc_2->operator()(vec_est(i, vec_est.cSlice()), 0.01);
-            
 
-            auto est_part = vec_est(i, vec_est.cSlice()) + 
-                step * (
-                    nc::matmul(this->mat_A, vec_est(i, vec_est.cSlice()).transpose()) + 
-                    nc::matmul(this->mat_W_1, neuron_out_1.transpose()) +
-                    nc::matmul(this->mat_W_2, nc::matmul(
-                        nc::diag(neuron_out_2),
-                        vec_u(i, vec_u.cSlice()).transpose()
-                        )
-                    )
-                ).transpose();
+            auto current_vec_est = xt::view(vec_est, i);
+            auto current_vec_u   = xt::view(vec_u, i);
+            auto current_delta   = xt::view(delta, i);
+
+            auto neuron_out_1 = this->afunc_1->operator()(current_vec_est, 0.01);
+            auto neuron_out_2 = this->afunc_2->operator()(current_vec_est, 0.01);
             
-            for(nc::uint32 j = 0; j < vec_est.numCols(); ++j){
-                // vec_est(i + 1, vec_est.cSlice())
-                vec_est(i + 1, j) = est_part[j];
-            }
+            
+            xt::view(vec_est, i+1) = current_vec_est + step * (
+                this->mat_A * current_vec_est +
+                this->mat_W_1 * neuron_out_1 +
+                this->mat_W_2 * xt::diag(neuron_out_2) * 
+                current_vec_u
+            );
             
             this->mat_W_1 -= step * (
-                nc::matmul(
-                    nc::matmul(
-                        nc::matmul( 
-                            this->mat_K_1, 
-                            this->mat_P
-                        ),
-                        delta(i, delta.cSlice()).transpose()
-                    ),
-                    neuron_out_1
-                )
+                this->mat_K_1 * this->mat_P * 
+                current_delta * neuron_out_1
             );
 
             this->mat_W_2 -= step * (
-                nc::matmul(
-                    nc::matmul(
-                        nc::matmul(
-                            nc::matmul(
-                                this->mat_K_2, 
-                                this->mat_P
-                            ), 
-                            delta(i, delta.cSlice()).transpose()
-                        ).transpose(),
-                        nc::diag(neuron_out_2)
-                    ),
-                    vec_u(i, vec_u.cSlice()).transpose()
-                )[0]
+                this->mat_K_2 * this->mat_P * 
+                current_delta * xt::diag(neuron_out_2) *
+                current_vec_u
             );
 
-            this->array_hist_W_1[i] = this->mat_W_1.copy();
-            this->array_hist_W_2[i] = this->mat_W_2.copy();
+            xt::view(this->array_hist_W_1, i).assign(this->mat_W_1);
+            xt::view(this->array_hist_W_2, i).assign(this->mat_W_2);
         }
 
         this->smoothed_W_1 = this->smooth(this->array_hist_W_1, k_points);
@@ -163,55 +141,37 @@ nc::NdArray<double> SpikeDNNet::fit(
 }
 
 
-nc::NdArray<double> SpikeDNNet::predict(
-        nc::NdArray<double> init_state,
-        nc::NdArray<double> vec_u,
+xt::xarray<double> SpikeDNNet::predict(
+        xt::xarray<double> init_state,
+        xt::xarray<double> vec_u,
         double step)
 {
-    auto nt = vec_u.numRows();
+    auto nt = vec_u.size();
+    auto vec_est = init_state * xt::ones<double>({nt, this->mat_dim});
 
-    nc::NdArray<double> vec_est;
-    
-    // Check if init_state is just a single number
-    if(init_state.shape() == nc::Shape(1)){
-        vec_est = init_state[0] * nc::ones<double>(nt, this->mat_dim);
-    }else{
-        vec_est = init_state * nc::ones<double>(nt, this->mat_dim);
-    }
+    auto W1 = xt::view(this->smoothed_W_1, -1);
+    auto W2 = xt::view(this->smoothed_W_2, -1);
 
-    const auto& W_1 = this->smoothed_W_1.back();
-    const auto& W_2 = this->smoothed_W_2.back();
+    for(auto i = 0u; i < nt - 1; ++i){
+        auto cur_est = xt::view(vec_est, i);
+        auto cur_u   = xt::view(vec_u, i);
 
-    for(int i = 0; i < nt - 1; ++i){
-        auto est_part = vec_est(i, vec_est.cSlice()) +
-            step * (
-                nc::matmul(
-                    this->mat_A,
-                    vec_est(i, vec_est.cSlice()).transpose()
-                ).transpose() + 
-                nc::matmul(
-                    W_1,
-                    this->afunc_1->operator()(vec_est(i, vec_est.cSlice())).transpose()
-                ).transpose() + 
-                nc::matmul(
-                    nc::matmul(
-                        W_2,
-                        this->afunc_2->operator()(vec_est(i, vec_est.cSlice())).transpose()
-                    ), 
-                    vec_u(i, vec_u.cSlice())    
-                )[0]
-            );
-        
-        for(nc::uint32 j = 0; j < vec_est.numCols(); ++j){
-            vec_est(i + 1, j) = est_part[j];
-        }
+        auto neuron_1_out = this->afunc_1->operator()(cur_est);
+        auto neuron_2_out = this->afunc_2->operator()(cur_est);
+
+        xt::view(vec_est, i+1) =  + step * (
+            this->mat_A * cur_est + 
+            W1 * neuron_1_out + 
+            W2 * neuron_2_out * 
+            cur_u
+        );
     }
 
     return vec_est;
 }
 
 
-nc::DataCube<double> SpikeDNNet::get_weights(nc::uint8 idx) const
+xt::xarray<double> SpikeDNNet::get_weights(std::uint8_t idx) const
 {
     if(idx == 0){
         return this->array_hist_W_1;
@@ -221,6 +181,6 @@ nc::DataCube<double> SpikeDNNet::get_weights(nc::uint8 idx) const
         return this->array_hist_W_2;
     }
 
-    return nc::DataCube<double>();
+    return xt::xarray<double>();
 }
 

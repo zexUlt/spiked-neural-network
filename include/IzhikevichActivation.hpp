@@ -2,6 +2,7 @@
 
 #include "AbstractActivation.hpp"
 
+
 namespace CxxSDNN{
 
 class IzhikevichActivation : public AbstractActivation
@@ -13,15 +14,15 @@ private:
     double param_c;
     double param_d;
     double param_e;
-    nc::uint32 dim;
-    nc::NdArray<double> control;
-    nc::NdArray<double> state;
+    std::uint32_t dim;
+    xt::xarray<double> control;
+    xt::xarray<double> state;
 
 public:
     explicit IzhikevichActivation(
         double _izh_border, double a, 
         double b, double c,
-        double d, double e, nc::uint32 _dim);
+        double d, double e, std::uint32_t _dim);
 
     explicit IzhikevichActivation(
         double _izh_border, double a, 
@@ -34,13 +35,13 @@ public:
     );
 
     explicit IzhikevichActivation(
-        nc::uint32 _dim
+        std::uint32_t _dim
     );
 
     explicit IzhikevichActivation();
     
 
-    nc::NdArray<double> operator()(nc::NdArray<double> input, double step) override;
+    xt::xarray<double> operator()(xt::xarray<double> input, double step) override;
 };
 
 };

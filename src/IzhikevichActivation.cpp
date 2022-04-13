@@ -1,17 +1,18 @@
 #include "IzhikevichActivation.hpp"
 
+#include "xtensor-blas/xlinalg.hpp"
 
 using CxxSDNN::IzhikevichActivation;
 
 IzhikevichActivation::IzhikevichActivation(
         double _izh_border, double a, 
         double b, double c,
-        double d, double e, nc::uint32 _dim) :
+        double d, double e, std::uint32_t _dim) :
         izh_border{_izh_border}, param_a{a}, param_b{b}, param_c{c},
         param_d{d}, param_e{e}, dim{_dim}
 {
-    control = nc::ones<double>(1, dim) * param_b * param_e;
-    state   = nc::ones<double>(1, dim) * param_e;
+    control = xt::ones<double>({1u, dim}) * param_b * param_e;
+    state   = xt::ones<double>({1u, dim}) * param_e;
 }
 
 IzhikevichActivation::IzhikevichActivation(
@@ -31,7 +32,7 @@ IzhikevichActivation::IzhikevichActivation(
 }
 
 IzhikevichActivation::IzhikevichActivation(
-        nc::uint32 _dim
+        std::uint32_t _dim
     ) : IzhikevichActivation(.18, 2e-5, 35e-3, -55e-3, .05, -65e-3, _dim)
 {
 
@@ -43,10 +44,10 @@ IzhikevichActivation::IzhikevichActivation() :
     
 }
 
-nc::NdArray<double> IzhikevichActivation::operator()(nc::NdArray<double> input, double step = .01)
+xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, double step = .01)
 {
-    auto vec_scale = nc::ones<double>(1, this->dim);
-    auto self_state_norm = nc::matmul(this->state, this->state)[0]; 
+    auto vec_scale = xt::ones<double>({1u, this->dim});
+    auto self_state_norm = xt::linalg::dot(this->state, this->state); 
     auto _state = this->state + step * ( 
         .04 * self_state_norm + 5. * this->state + 140. - this->control + input
     );
@@ -57,7 +58,7 @@ nc::NdArray<double> IzhikevichActivation::operator()(nc::NdArray<double> input, 
         )
     );
 
-    if(nc::all(_state > this->izh_border)[0]){
+    if(xt::all(_state > this->izh_border)){
         this->state = vec_scale * this->param_c;
         this->control = vec_scale * this->param_d;
     }else{

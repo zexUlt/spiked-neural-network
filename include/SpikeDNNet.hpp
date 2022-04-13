@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NumCpp.hpp"
+#include "xtensor/xarray.hpp"
 
 
 namespace CxxSDNN{
@@ -10,19 +10,19 @@ class AbstractActivation;
 class SpikeDNNet
 {
 private:
-    int mat_dim;
-    nc::NdArray<double> mat_A;
-    nc::NdArray<double> mat_P;
-    nc::NdArray<double> mat_K_1;
-    nc::NdArray<double> mat_K_2;
-    nc::NdArray<double> mat_W_1;
-    nc::NdArray<double> mat_W_2;
-    nc::NdArray<double> init_mat_W_1;
-    nc::NdArray<double> init_mat_W_2;
-    nc::DataCube<double> array_hist_W_1;
-    nc::DataCube<double> array_hist_W_2;
-    nc::DataCube<double> smoothed_W_1;
-    nc::DataCube<double> smoothed_W_2;
+    size_t mat_dim;
+    xt::xarray<double> mat_A;
+    xt::xarray<double> mat_P;
+    xt::xarray<double> mat_K_1;
+    xt::xarray<double> mat_K_2;
+    xt::xarray<double> mat_W_1;
+    xt::xarray<double> mat_W_2;
+    xt::xarray<double> init_mat_W_1;
+    xt::xarray<double> init_mat_W_2;
+    xt::xarray<double> array_hist_W_1;
+    xt::xarray<double> array_hist_W_2;
+    xt::xarray<double> smoothed_W_1;
+    xt::xarray<double> smoothed_W_2;
     AbstractActivation* afunc_1;
     AbstractActivation* afunc_2;
 
@@ -32,36 +32,36 @@ public:
     explicit SpikeDNNet(
         AbstractActivation* act_func_1,
         AbstractActivation* act_func_2,
-        nc::NdArray<double> mat_W_1,
-        nc::NdArray<double> mat_W_2,
-        int dim = 2,
-        nc::NdArray<double> mat_A = 20. * nc::diag(nc::NdArray<double>({-1., -2.})),
-        nc::NdArray<double> mat_P = 1575.9 * nc::diag(nc::NdArray<double>({60., 40.})),
-        nc::NdArray<double> mat_K_1 = .15 * nc::diag(nc::NdArray<double>({10., 1.})),
-        nc::NdArray<double> mat_K_2 = .15 * nc::diag(nc::NdArray<double>({1., 1.}))
+        xt::xarray<double> mat_W_1,
+        xt::xarray<double> mat_W_2,
+        size_t dim = 2,
+        xt::xarray<double> mat_A = 20. * xt::diag(xt::xarray<double>({-1., -2.})),
+        xt::xarray<double> mat_P = 1575.9 * xt::diag(xt::xarray<double>({60., 40.})),
+        xt::xarray<double> mat_K_1 = .15 * xt::diag(xt::xarray<double>({10., 1.})),
+        xt::xarray<double> mat_K_2 = .15 * xt::diag(xt::xarray<double>({1., 1.}))
     );
 
     SpikeDNNet(const SpikeDNNet& other);
 
     SpikeDNNet& operator=(const SpikeDNNet& other);
 
-    static nc::NdArray<double> moving_average(nc::NdArray<double> x, nc::uint32 w = 2);
+    static xt::xarray<double> moving_average(xt::xarray<double> x, std::uint32_t w = 2);
 
-    nc::DataCube<double> smooth(nc::DataCube<double> x, nc::uint32 w = 2);
+    xt::xarray<double> smooth(xt::xarray<double> x, std::uint32_t w = 2);
 
-    nc::NdArray<double> fit(
-        nc::NdArray<double> vec_x,
-        nc::NdArray<double> vec_u,
+    xt::xarray<double> fit(
+        xt::xarray<double> vec_x,
+        xt::xarray<double> vec_u,
         double step = .01,
-        int n_epochs = 3,
-        int k_points = 2);
+        std::uint32_t n_epochs = 3,
+        std::uint32_t k_points = 2);
 
-    nc::NdArray<double> predict(
-        nc::NdArray<double> init_state,
-        nc::NdArray<double> vec_u,
+    xt::xarray<double> predict(
+        xt::xarray<double> init_state,
+        xt::xarray<double> vec_u,
         double step = .01);
 
-    nc::DataCube<double> get_weights(nc::uint8 idx) const;
+    xt::xarray<double> get_weights(std::uint8_t idx) const;
 };
 
 };
