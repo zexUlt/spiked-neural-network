@@ -1,11 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 
 RECONFIG=0
+CMAKE_PARAMETERS=()
 
-if [ $# -gt 0 ]; then
+while [[ $# -gt 0 ]]; do
     case $1 in
         -r|--reconfigure)
             RECONFIG=1
+            shift # past option
             ;;
         -h|--help)
             echo "Configuration script."
@@ -14,17 +16,22 @@ if [ $# -gt 0 ]; then
             echo "       -h, --help        = Show this help and exit."
             exit 0
             ;;
+        -D*)
+            CMAKE_PARAMETERS+=( $1 )
+            shift
+            ;; 
         -*|--*)
             echo "Unknown option $1"
             exit 1
             ;;
     esac
-fi
+done
 
-if [ ${RECONFIG} -eq 1 ]; then
+if [[ ${RECONFIG} -eq 1 ]]; then
     echo "Cleaning previous configuration data..."
     rm -r ./build
 fi
 
+echo "CMAKE_PARAMETERS = [$CMAKE_PARAMETERS]"
 echo "Building..."
-cmake -S . -B ./build
+cmake $CMAKE_PARAMETERS -S . -B ./build 
