@@ -1,6 +1,7 @@
 #include "IzhikevichActivation.hpp"
 
 #include "xtensor-blas/xlinalg.hpp"
+#include "debug_header.hpp"
 
 using CxxSDNN::IzhikevichActivation;
 
@@ -11,8 +12,8 @@ IzhikevichActivation::IzhikevichActivation(
         izh_border{_izh_border}, param_a{a}, param_b{b}, param_c{c},
         param_d{d}, param_e{e}, dim{_dim}
 {
-    control = xt::ones<double>({1u, dim}) * param_b * param_e;
-    state   = xt::ones<double>({1u, dim}) * param_e;
+    control = xt::eval(xt::ones<double>({1u, dim}) * param_b * param_e);
+    state   = xt::eval(xt::ones<double>({1u, dim}) * param_e);
 }
 
 IzhikevichActivation::IzhikevichActivation(
@@ -46,10 +47,15 @@ IzhikevichActivation::IzhikevichActivation() :
 
 xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, double step = .01)
 {
-    auto vec_scale = xt::ones<double>({1u, this->dim});
-    auto self_state_norm = xt::linalg::dot(this->state, this->state); 
+    auto vec_scale = xt::ones<double>({1u, this->dim}); 
+
+    // Don't know why there exception is thrown
+    // auto self_state_dot = xt::linalg::dot(this->state, this->state);
+    auto self_state_dot = xt::eval(xt::pow<2>(xt::linalg::norm(this->state)));
+
+    std::cout << "After dot\n";
     auto _state = this->state + step * ( 
-        .04 * self_state_norm + 5. * this->state + 140. - this->control + input
+        .04 * self_state_dot + 5. * this->state + 140. - this->control + input
     );
     
     this->control += step * (
