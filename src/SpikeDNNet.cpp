@@ -60,13 +60,13 @@ xt::xarray<double> SpikeDNNet::smooth(xt::xarray<double> x, std::uint32_t w)
     auto m = x.shape(1);
     auto n = x.shape(2);
     auto new_sizeZ = l - w + 1u;
-    auto new_x = xt::ones<double>({new_sizeZ, m, n}); 
+    xt::xarray<double> new_x = xt::ones<double>({new_sizeZ, m, n}); 
 
     for(auto i = 0u; i < m; ++i){
         for(auto j = 0u; j < n; ++j){
             auto slice_x = xt::view(x, xt::all(), i, j);
             auto m_av = moving_average(slice_x, w);
-            xt::view(new_x, xt::all(), i, j) = m_av;
+            slice_x = m_av;
         }
     }
 
@@ -81,7 +81,7 @@ xt::xarray<double> SpikeDNNet::fit(
         std::uint32_t k_points)
 {
     auto nt = vec_u.shape(0);
-    auto vec_est = 0.1 * xt::ones<double>({nt, this->mat_dim});
+    xt::xarray<double> vec_est = 0.1 * xt::ones<double>({nt, this->mat_dim});
 
     this->mat_W_1 = this->init_mat_W_1;
     this->mat_W_2 = this->init_mat_W_2;
@@ -92,8 +92,8 @@ xt::xarray<double> SpikeDNNet::fit(
     
 
     for(int e = 1; e < n_epochs + 1; ++e){
-        vec_x = xt::flip(vec_x, 0);
-        vec_u = xt::flip(vec_u, 0);  
+        vec_x = xt::eval(xt::flip(vec_x, 0));
+        vec_u = xt::eval(xt::flip(vec_u, 0));  
         
         if(e > 1){
             this->mat_W_1 = xt::view(this->smoothed_W_1, -1);
@@ -110,13 +110,13 @@ xt::xarray<double> SpikeDNNet::fit(
             auto neuron_out_1 = this->afunc_1->operator()(current_vec_est, 0.01);
             auto neuron_out_2 = this->afunc_2->operator()(current_vec_est, 0.01);
             
-            
-            xt::view(vec_est, i+1) = current_vec_est + step * (
+            auto vec_est_next = xt::view(vec_est, i + 1);
+            vec_est_next = xt::eval(current_vec_est + step * (
                 this->mat_A * current_vec_est +
                 this->mat_W_1 * neuron_out_1 +
                 this->mat_W_2 * xt::diag(neuron_out_2) * 
                 current_vec_u
-            );
+            ));
             
             this->mat_W_1 -= step * (
                 this->mat_K_1 * this->mat_P * 
@@ -147,7 +147,7 @@ xt::xarray<double> SpikeDNNet::predict(
         double step)
 {
     auto nt = vec_u.size();
-    auto vec_est = init_state * xt::ones<double>({nt, this->mat_dim});
+    xt::xarray<double> vec_est = init_state * xt::ones<double>({nt, this->mat_dim});
 
     auto W1 = xt::view(this->smoothed_W_1, -1);
     auto W2 = xt::view(this->smoothed_W_2, -1);
@@ -159,7 +159,8 @@ xt::xarray<double> SpikeDNNet::predict(
         auto neuron_1_out = this->afunc_1->operator()(cur_est);
         auto neuron_2_out = this->afunc_2->operator()(cur_est);
 
-        xt::view(vec_est, i+1) =  + step * (
+        auto vec_est_next = xt::view(vec_est, i + 1);
+        vec_est_next = cur_est + step * (
             this->mat_A * cur_est + 
             W1 * neuron_1_out + 
             W2 * neuron_2_out * 
