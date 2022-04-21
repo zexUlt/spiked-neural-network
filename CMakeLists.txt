@@ -4,6 +4,19 @@ project("spiked-neural-network" CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 
+option(WITH_DEBUG_SYMBOLS "Whether to build with debug symbols or not" OFF)
+
+# =======================================
+#    CHOOSING BUILD TYPE
+# =======================================
+if(WITH_DEBUG_SYMBOLS)
+    set(CMAKE_BUILD_TYPE RelWithDebInfo)
+else()
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+message(STATUS "Set build type to ${CMAKE_BUILD_TYPE}")
+
 # =======================================
 #      SUBMODULES CHECKOUT
 # =======================================
@@ -59,8 +72,11 @@ option(ENABLE_HAND_TESTS "Disable linking of source code files except main.cpp i
 
 list(APPEND SOURCES main.cpp)
 
+# =======================================
+#    CHOOSING BETWEEN FULL SOURCE BUILD OR JUST main.cpp
+# =======================================
 if(NOT ENABLE_HAND_TESTS)
-    message(STATUS "Set ENABLE_HAND_TESTS to ${ENABLE_HAND_TESTS}")
+    message(STATUS "Configuring for full build")
     file(GLOB files
         # RELATIVE ${PROJECT_SOURCE_DIR}
         ${SOURCE_CODE_DIR}/*.cpp
@@ -71,6 +87,8 @@ if(NOT ENABLE_HAND_TESTS)
     foreach(file ${files})
         list(APPEND SOURCES ${file})
     endforeach()
+else()
+    message(STATUS "Configuring for build only with main.cpp")
 endif()
 
 add_executable(
