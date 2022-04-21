@@ -45,7 +45,8 @@ public:
         const auto& min_v = (nf < ng) ? f : g;
         const auto& max_v = (nf < ng) ? g : f;
         const auto n = std::max(nf, ng) - std::min(nf, ng) + 1;
-        xt::xarray<dtype> out(1, n);
+        std::vector<size_t> shape{1, n};
+        xt::xarray<dtype> out(shape);
 
         for(auto i(0u); i < n; ++i){
             for(int j(min_v.size() - 1), k(i); j >=0; --j, ++k){
