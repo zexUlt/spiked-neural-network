@@ -2,11 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-time = np.fromfile('plot_data/timeline.dmp', sep=';')
-tr_target = np.fromfile('plot_data/target.dmp', sep=';')
-tr_control = np.fromfile('plot_data/control.dmp', sep=';').reshape(-1, 2)
-tr_est = np.fromfile('plot_data/estimation.dmp', sep=';')
-error = np.fromfile('plot_data/error.dmp', sep=';')
+time = np.fromfile('plot_data/timeline.npy')[:3305]
+tr_target = np.load('plot_data/target.npy')
+tr_control = np.load('plot_data/control.npy')
+tr_est = np.load('plot_data/estimation.npy')
+error = np.load('plot_data/error.npy')
 
 fig, axs = plt.subplots(2, 2, figsize=(16, 8))
 
