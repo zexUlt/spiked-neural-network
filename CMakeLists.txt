@@ -10,7 +10,7 @@ option(WITH_DEBUG_SYMBOLS "Whether to build with debug symbols or not" OFF)
 #    CHOOSING BUILD TYPE
 # =======================================
 if(WITH_DEBUG_SYMBOLS)
-    set(CMAKE_BUILD_TYPE RelWithDebInfo)
+    set(CMAKE_BUILD_TYPE Debug)
 else()
     set(CMAKE_BUILD_TYPE Release)
 endif()
