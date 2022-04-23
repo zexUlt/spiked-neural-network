@@ -3,8 +3,11 @@
 #include "Utility.hpp"
 
 #include <xtensor/xview.hpp>
+#include <xtensor-blas/xlinalg.hpp>
 
 #include "debug_header.hpp"
+
+
 
 using CxxSDNN::SpikeDNNet;
 
@@ -51,7 +54,7 @@ SpikeDNNet& SpikeDNNet::operator=(const SpikeDNNet& other)
 
 xt::xarray<double> SpikeDNNet::moving_average(xt::xarray<double> x, std::uint32_t w)
 {
-    return UtilityFunctionLibrary::convolveValid<double>(x, xt::ones<double>({1u, w})) / static_cast<double>(w);
+    return UtilityFunctionLibrary::convolveValid<double>(x, xt::ones<double>({w})) / static_cast<double>(w);
 }
 
 xt::xarray<double> SpikeDNNet::smooth(xt::xarray<double> x, std::uint32_t w)
@@ -82,7 +85,7 @@ xt::xarray<double> SpikeDNNet::fit(
 {
     auto nt = vec_u.shape(0);
     xt::xarray<double> vec_est = 0.1 * xt::ones<double>({nt, this->mat_dim});
-
+ 
     this->mat_W_1 = this->init_mat_W_1;
     this->mat_W_2 = this->init_mat_W_2;
 
@@ -112,31 +115,41 @@ xt::xarray<double> SpikeDNNet::fit(
             
             auto vec_est_next = xt::view(vec_est, i + 1);
             vec_est_next = xt::eval(current_vec_est + step * (
-                this->mat_A * current_vec_est +
-                this->mat_W_1 * neuron_out_1 +
-                this->mat_W_2 * xt::diag(neuron_out_2) * 
-                current_vec_u
+                xt::linalg::dot(this->mat_A, current_vec_est) +
+                xt::linalg::dot(this->mat_W_1, neuron_out_1) +
+                xt::linalg::dot(
+                    xt::linalg::dot(this->mat_W_2, xt::diag(neuron_out_2)), 
+                    current_vec_u)
             ));
             
             this->mat_W_1 -= step * (
-                this->mat_K_1 * this->mat_P * 
-                current_delta * neuron_out_1
+                xt::linalg::dot(
+                    xt::linalg::dot(
+                        xt::linalg::dot(this->mat_K_1, this->mat_P), 
+                        current_delta
+                    ),
+                neuron_out_1)
             );
 
             this->mat_W_2 -= step * (
-                this->mat_K_2 * this->mat_P * 
-                current_delta * xt::diag(neuron_out_2) *
-                current_vec_u
+                xt::linalg::dot(
+                    xt::linalg::dot(
+                        xt::linalg::dot(
+                            xt::linalg::dot(this->mat_K_2, this->mat_P),
+                            current_delta
+                        ),
+                        xt::diag(neuron_out_2)
+                    ),
+                current_vec_u)
             );
 
             xt::view(this->array_hist_W_1, i).assign(this->mat_W_1);
             xt::view(this->array_hist_W_2, i).assign(this->mat_W_2);
         }
-
         this->smoothed_W_1 = this->smooth(this->array_hist_W_1, k_points);
         this->smoothed_W_2 = this->smooth(this->array_hist_W_2, k_points);
     }
-
+    
     return vec_est;
 }
 
@@ -146,8 +159,8 @@ xt::xarray<double> SpikeDNNet::predict(
         xt::xarray<double> vec_u,
         double step)
 {
-    auto nt = vec_u.size();
-    xt::xarray<double> vec_est = init_state * xt::ones<double>({nt, this->mat_dim});
+    auto nt = vec_u.shape()[0]; // 1089
+    xt::xarray<double> vec_est = init_state * xt::ones<double>({nt, this->mat_dim}); // 2178 2
 
     auto W1 = xt::view(this->smoothed_W_1, -1);
     auto W2 = xt::view(this->smoothed_W_2, -1);
@@ -161,13 +174,15 @@ xt::xarray<double> SpikeDNNet::predict(
 
         auto vec_est_next = xt::view(vec_est, i + 1);
         vec_est_next = cur_est + step * (
-            this->mat_A * cur_est + 
-            W1 * neuron_1_out + 
-            W2 * neuron_2_out * 
-            cur_u
+            xt::linalg::dot(this->mat_A, cur_est) + 
+            xt::linalg::dot(W1, neuron_1_out) + 
+            xt::linalg::dot(
+                xt::linalg::dot(W2, neuron_2_out), 
+                cur_u
+            )
         );
     }
-
+    std::cout << "Predict Success\n";
     return vec_est;
 }
 
