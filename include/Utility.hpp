@@ -71,15 +71,7 @@ public:
         auto vl_control = folds["vl"].second;
 
         auto target_est = dnn.fit(tr_target, tr_control, 0.01, n_epochs, k_points);
-
-        // std::cout << target_est;
-        DEBUG_SHAPE(xt::view(tr_target, -1, 0));
         auto vl_pred = dnn.predict(xt::view(tr_target, -1, 0), vl_control);
-
-        DEBUG_SHAPE(tr_target);
-        DEBUG_SHAPE(target_est);
-        DEBUG_SHAPE(vl_target);
-        DEBUG_SHAPE(vl_pred);
 
         xt::xarray<double> tr_col     = xt::col(tr_target, 0);
         xt::xarray<double> target_col = xt::col(target_est, 0);
@@ -111,8 +103,6 @@ public:
     template<typename dtype>
     static double mean_squared_error(xt::xarray<dtype> y_true, xt::xarray<dtype> y_pred)
     {
-        DEBUG_SHAPE(y_true);
-        DEBUG_XARRAY(y_true);
         xt::xarray<dtype> sq = xt::square(y_true - y_pred);
         auto output_errors = xt::average(sq);
 
