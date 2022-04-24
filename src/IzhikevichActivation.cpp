@@ -27,20 +27,20 @@ IzhikevichActivation::IzhikevichActivation(
 
 IzhikevichActivation::IzhikevichActivation(
         double _izh_border
-    ) : IzhikevichActivation(_izh_border, 2e-5, 35e-3, -55e-3, .05, -65e-3)
+    ) : IzhikevichActivation(_izh_border, 2e-2, .2, -65e-3, 2, -65e-3)
 {
 
 }
 
 IzhikevichActivation::IzhikevichActivation(
         std::uint32_t _dim
-    ) : IzhikevichActivation(.18, 2e-5, 35e-3, -55e-3, .05, -65e-3, _dim)
+    ) : IzhikevichActivation(.18, 2e-2, .2, -65e-3, 2, -65e-3, _dim)
 {
 
 }
 
 IzhikevichActivation::IzhikevichActivation() : 
-    IzhikevichActivation(.18, 2e-5, 35e-3, -55e-3, .05, -65e-3, 2u) 
+    IzhikevichActivation(.18, 2e-2, .2, -65e-3, 2, -65e-3, 2u) 
 {
     
 }
