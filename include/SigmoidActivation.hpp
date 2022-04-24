@@ -14,7 +14,7 @@ private:
     double param_d;
 
 public:
-    explicit SigmoidActivation(double a, double b, double c, double d);
+    explicit SigmoidActivation(double a = 1., double b = 1., double c = .02, double d = -.02);
     xt::xarray<double> operator()(xt::xarray<double> input, double step) override;
 };
 
