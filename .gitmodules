@@ -1,6 +1,7 @@
 [submodule "external/xtensor"]
 	path = external/xtensor
 	url = git@github.com:xtensor-stack/xtensor.git
+	branch = stable
 [submodule "external/xtl"]
 	path = external/xtl
 	url = git@github.com:xtensor-stack/xtl.git
