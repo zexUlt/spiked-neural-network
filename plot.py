@@ -2,11 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-time = np.fromfile('plot_data/timeline.npy')[:3305]
+time = time = np.linspace(0, 4394, 4394)[:3305] / 110
 tr_target = np.load('plot_data/target.npy')
 tr_control = np.load('plot_data/control.npy')
 tr_est = np.load('plot_data/estimation.npy')
 error = np.load('plot_data/error.npy')
+
+
 
 fig, axs = plt.subplots(2, 2, figsize=(16, 8))
 
