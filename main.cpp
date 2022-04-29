@@ -35,12 +35,12 @@ int main(int argc, char** argv)
     // auto sigm_act_2 = new CxxSDNN::SigmoidActivation();
 
 
-    auto W_1 = 20. * xt::ones<double>({dim, dim})  ;
-    auto W_2 = 20. * xt::ones<double>({dim, dim});
-    auto A   = 20. * xt::diag(xt::xarray<double>{-1., -2.});
-    auto P   = 1575.9 * xt::diag(xt::xarray<double>{60., 40,});
-    auto K_1 = .15 * xt::diag(xt::xarray<double>{10., 1.});
-    auto K_2 = .15 * xt::diag(xt::xarray<double>{1., 1.});  
+    auto W_1 = 1. * xt::ones<double>({dim, dim})  ;
+    auto W_2 = 1. * xt::ones<double>({dim, dim});
+    auto A   = 162. * xt::diag(xt::xarray<double>{-1., -1.});
+    auto P   = 3337 * xt::diag(xt::xarray<double>{1., 1.});
+    auto K_1 = 1 * xt::diag(xt::xarray<double>{1., 1.});
+    auto K_2 = 0.1 * xt::diag(xt::xarray<double>{1., 1.});  
 
     CxxSDNN::SpikeDNNet dnn(
         izh_act_1, izh_act_2, // Activation functions
@@ -66,9 +66,11 @@ int main(int argc, char** argv)
     auto error = xt::abs(xt::col(tr_target, 0) - xt::col(res.tr_est[0], 1));
     // auto wdiff1 = xt::diff(res.W_1)
     xt::dump_npy("../plot_data/error.npy", xt::degrees(error));
-    xt::dump_npy("../plot_data/target.npy", xt::degrees(xt::col(tr_target, 1)) + 2.);
-    xt::dump_npy("../plot_data/control.npy", xt::degrees(tr_control));
-    xt::dump_npy("../plot_data/estimation.npy", xt::degrees(xt::col(res.tr_est[0], 1)) + 2.);
+    xt::dump_npy("../plot_data/control.npy", xt::degrees(tr_control));  
+    xt::dump_npy("../plot_data/target.npy", xt::degrees(xt::col(tr_target, 0)));
+    xt::dump_npy("../plot_data/estimation.npy", xt::degrees(xt::col(res.tr_est[0], 0)));
+    xt::dump_npy("../plot_data/target2.npy", xt::degrees(xt::col(tr_target, 1)));
+    xt::dump_npy("../plot_data/estimation2.npy", xt::degrees(xt::col(res.tr_est[0], 1)));
 
     delete izh_act_1;
     delete izh_act_2;
