@@ -7,6 +7,8 @@ tr_target = np.load('plot_data/target.npy')
 tr_control = np.load('plot_data/control.npy')
 tr_est = np.load('plot_data/estimation.npy')
 error = np.load('plot_data/error.npy')
+tr_target_2 = np.load('plot_data/target2.npy')
+tr_est_2 = np.load('plot_data/estimation2.npy')
 
 
 
@@ -31,6 +33,18 @@ axs[1, 0].plot(time,
 
 axs[0, 1].plot(time,
                 error,
+                color='tab:blue',
+                lw='2')
+
+axs[1, 1].scatter(time,
+    tr_target_2,
+    linestyle='solid',
+    color=(165/255, 172/255, 175/255),
+    s=4.5,
+    zorder=100)
+
+axs[1, 1].plot(time,
+                tr_est_2,
                 color='tab:blue',
                 lw='2')
 
