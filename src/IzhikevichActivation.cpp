@@ -27,20 +27,20 @@ IzhikevichActivation::IzhikevichActivation(
 
 IzhikevichActivation::IzhikevichActivation(
         double _izh_border
-    ) : IzhikevichActivation(_izh_border, 2e-2, .2, -65e-3, 2, -65e-3)
+    ) : IzhikevichActivation(_izh_border, 2e-2, 0.2, -65, 8, -65)
 {
 
 }
 
 IzhikevichActivation::IzhikevichActivation(
         std::uint32_t _dim
-    ) : IzhikevichActivation(.18, 2e-2, .2, -65e-3, 2, -65e-3, _dim)
+    ) : IzhikevichActivation(30, 2e-2, 0.2, -65, 8, -65, _dim)
 {
 
 }
 
 IzhikevichActivation::IzhikevichActivation() : 
-    IzhikevichActivation(.18, 2e-2, .2, -65e-3, 2, -65e-3, 2u) 
+    IzhikevichActivation(30, 2e-2, 0.2, -65, 8, -65, 2u) 
 {
     
 }
@@ -52,7 +52,7 @@ xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, do
     auto self_state_dot = xt::linalg::dot(this->state, this->state);
 
     auto _state = this->state + step * ( 
-        .04 * self_state_dot + 5. * this->state + 140. - this->control + input
+        .04 * self_state_dot + 5. * this->state + 140. - this->control + input * 100
     );
     
     this->control += step * (
@@ -67,6 +67,7 @@ xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, do
     }else{
         this->state = _state;
     }
-
-    return this->state;
+    DEBUG_XARRAY(this->state);
+    DEBUG_XARRAY(_state);
+    return this->state / 80;
 }

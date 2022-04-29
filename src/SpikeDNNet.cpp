@@ -69,7 +69,7 @@ xt::xarray<double> SpikeDNNet::smooth(xt::xarray<double> x, std::uint32_t w)
         for(auto j = 0u; j < n; ++j){
             auto slice_x = xt::view(x, xt::all(), i, j);
             auto m_av = moving_average(slice_x, w);
-            slice_x = m_av;
+            slice_x = m_av;;
         }
     }
 
@@ -94,7 +94,7 @@ xt::xarray<double> SpikeDNNet::fit(
 
     
 
-    for(int e = 1; e < n_epochs + 1; ++e){
+    for(int e = 0; e < n_epochs; ++e){
         vec_x = xt::eval(xt::flip(vec_x, 0));
         vec_u = xt::eval(xt::flip(vec_u, 0));  
         
@@ -104,50 +104,21 @@ xt::xarray<double> SpikeDNNet::fit(
         }
 
         for(int i = 0; i < nt - 1; ++i){
-            auto delta = vec_est - vec_x;
+            xt::xarray<double> current_vec_est = xt::view(vec_est, i);
+            xt::xarray<double> current_vec_u   = xt::view(vec_u, i);
+            xt::xarray<double> current_delta   = current_vec_est - xt::view(vec_x, i);
+            DEBUG_XARRAY(current_delta);
+            std::cout << i << '\n';
 
-            auto current_vec_est = xt::view(vec_est, i);
-            auto current_vec_u   = xt::view(vec_u, i);
-            auto current_delta   = xt::view(delta, i);
-
-            // auto neuron_out_1 = this->afunc_1->operator()(current_vec_est, 0.01);
-            // auto neuron_out_2 = this->afunc_2->operator()(current_vec_est, 0.01);
+            auto neuron_out_1 = this->afunc_1->operator()(current_vec_est, 0.01);
+            auto neuron_out_2 = this->afunc_2->operator()(current_vec_est, 0.01);
             
-            // auto vec_est_next = xt::view(vec_est, i + 1);
-            // vec_est_next = xt::eval(current_vec_est + step * (
-            //     xt::linalg::dot(this->mat_A, current_vec_est) +
-            //     xt::linalg::dot(this->mat_W_1, neuron_out_1) +
-            //     xt::linalg::dot(
-            //         xt::linalg::dot(this->mat_W_2, xt::diag(neuron_out_2)), 
-            //         current_vec_u)
-            // ));
-            
-            // this->mat_W_1 -= step * (
-            //     xt::linalg::dot(
-            //         xt::linalg::dot(
-            //             xt::linalg::dot(this->mat_K_1, this->mat_P), 
-            //             current_delta
-            //         ),
-            //     neuron_out_1)
-            // );
-
-            // this->mat_W_2 -= step * (
-            //     xt::linalg::dot(
-            //         xt::linalg::dot(
-            //             xt::linalg::dot(
-            //                 xt::linalg::dot(this->mat_K_2, this->mat_P),
-            //                 current_delta
-            //             ),
-            //             xt::diag(neuron_out_2)
-            //         ),
-            //     current_vec_u)
-            // );
             auto vec_est_next = xt::view(vec_est, i + 1);
             vec_est_next = xt::eval(current_vec_est + step * (
                 xt::linalg::dot(this->mat_A, current_vec_est) +
-                xt::linalg::dot(this->mat_W_1, this->afunc_1->operator()(current_vec_est, 0.01)) +
+                xt::linalg::dot(this->mat_W_1, neuron_out_1) +
                 xt::linalg::dot(
-                    xt::linalg::dot(this->mat_W_2, xt::diag(this->afunc_2->operator()(current_vec_est, 0.01))), 
+                    xt::linalg::dot(this->mat_W_2, xt::diag(neuron_out_2)), 
                     current_vec_u)
             ));
             
@@ -155,9 +126,9 @@ xt::xarray<double> SpikeDNNet::fit(
                 xt::linalg::dot(
                     xt::linalg::dot(
                         xt::linalg::dot(this->mat_K_1, this->mat_P), 
-                        current_delta
+                        current_delta.reshape({-1, 1})
                     ),
-                this->afunc_1->operator()(current_vec_est, 0.01))
+                neuron_out_1.reshape({1, -1}))
             );
 
             this->mat_W_2 -= step * (
@@ -165,11 +136,11 @@ xt::xarray<double> SpikeDNNet::fit(
                     xt::linalg::dot(
                         xt::linalg::dot(
                             xt::linalg::dot(this->mat_K_2, this->mat_P),
-                            current_delta
+                            current_delta.reshape({-1, 1})
                         ),
-                        xt::diag(this->afunc_2->operator()(current_vec_est, 0.01))
+                        current_vec_u.reshape({1, -1})
                     ),
-                current_vec_u)
+                xt::diag(neuron_out_2))
             );
 
             xt::view(this->array_hist_W_1, i).assign(this->mat_W_1);
