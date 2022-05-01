@@ -11,10 +11,11 @@ tr_target_2 = np.load('plot_data/target2.npy')
 tr_est_2 = np.load('plot_data/estimation2.npy')
 wdiff1 = np.load('plot_data/wdiff1.npy').reshape(-1 ,2)
 wdiff2 = np.load('plot_data/wdiff2.npy').reshape(-1 ,2)
+neuro1 = np.load('plot_data/neuro1.npy')
+neuro2 = np.load('plot_data/neuro2.npy')
 
 
-
-fig, axs = plt.subplots(3, 2, figsize=(16, 8))
+fig, axs = plt.subplots(4, 2, figsize=(16, 8))
 
 axs[0, 0].plot(time,
         tr_control,
@@ -60,20 +61,33 @@ axs[2, 1].plot(time[:-2],
         color='tab:blue',
         lw='2')
 
-axs[2, 0].set_xlabel('Time (s)', fontsize=12)
-axs[2, 1].set_xlabel('Time (s)', fontsize=12)
+axs[3, 0].plot(time[:-2],
+        neuro1[:3303],
+        color='tab:blue',
+        lw='2')
 
-axs[0, 0].set_ylabel("Angle of head rotation (°)", fontsize=12)
-axs[1, 0].set_ylabel("Angle of eye rotation 1 (°)", fontsize=12)
-axs[1, 1].set_ylabel("Angle of eye rotation 2 (°)", fontsize=12)
-axs[0, 1].set_ylabel('Error (°)', fontsize=12)
-axs[2, 0].set_ylabel('Dynamics of changes in weights', fontsize=12)
+axs[3, 1].plot(time[:-2],
+        neuro2[:3303],
+        color='tab:blue',
+        lw='2')
+
+axs[3, 0].set_xlabel('Time (s)', fontsize=12)
+axs[3, 1].set_xlabel('Time (s)', fontsize=12)
+
+axs[0, 0].set_ylabel("Angle of head rotation (°)", fontsize=10)
+axs[1, 0].set_ylabel("Angle of eye rotation 1 (°)", fontsize=10)
+axs[1, 1].set_ylabel("Angle of eye rotation 2 (°)", fontsize=10)
+axs[0, 1].set_ylabel('Error (°)', fontsize=10)
+axs[2, 0].set_ylabel('Dynamics of changes in weights', fontsize=10)
+axs[3, 0].set_ylabel('Neuron output', fontsize=10)
 
 
 axs[1, 0].legend(['Identification', 'Experimental data'])
 axs[1, 1].legend(['Identification', 'Experimental data'])
 axs[2, 0].legend(['W_1'])
 axs[2, 1].legend(['W_2'])
+axs[3, 0].legend(['Neuron 1'])
+axs[3, 1].legend(['Neuron 2'])
 
 # axs[0, 0].text(-0.1, 1., 'A', transform=axs[0, 0].transAxes,
 #                 size=20, weight='bold')
