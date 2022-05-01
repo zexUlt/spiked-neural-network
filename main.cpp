@@ -22,10 +22,10 @@ int main(int argc, char** argv)
     const std::int32_t split     = 3305;
     const std::uint32_t dim      = 2u;
     const std::uint32_t n_epochs = 2u;
-    const std::uint32_t k_points = 2u;
+    const std::uint32_t k_points = 3u;
 
-    auto izh_act_1 = std::make_unique<CxxSDNN::IzhikevichActivation>(dim);
-    auto izh_act_2 = std::make_unique<CxxSDNN::IzhikevichActivation>(dim);
+    auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(-70, 1/60., 2u, NeuronType::LowThresholdSpiking);
+    auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(70, 1/60., 2u, NeuronType::Chattering);
 
     auto W_1 = 1. * xt::ones<double>({dim, dim}); // 1.
     auto W_2 = 1. * xt::ones<double>({dim, dim}); // 1.
