@@ -21,15 +21,14 @@ int main(int argc, char** argv)
     const std::uint32_t width    = 4394u;
     const std::int32_t split     = 3305;
     const std::uint32_t dim      = 2u;
-    const std::uint32_t n_epochs = 1u;
-    const std::uint32_t k_points = 1u;
+    const std::uint32_t n_epochs = 2u;
+    const std::uint32_t k_points = 2u;
 
-    std::unique_ptr<CxxSDNN::IzhikevichActivation> izh_act_1 = std::make_unique<CxxSDNN::IzhikevichActivation>(dim);
-    std::unique_ptr<CxxSDNN::IzhikevichActivation> izh_act_2 = std::make_unique<CxxSDNN::IzhikevichActivation>(dim);
+    auto izh_act_1 = std::make_unique<CxxSDNN::IzhikevichActivation>(dim);
+    auto izh_act_2 = std::make_unique<CxxSDNN::IzhikevichActivation>(dim);
 
-
-    auto W_1 = .01 * xt::ones<double>({dim, dim}); // 1.
-    auto W_2 = 10. * xt::ones<double>({dim, dim}); // 1.
+    auto W_1 = 1. * xt::ones<double>({dim, dim}); // 1.
+    auto W_2 = 1. * xt::ones<double>({dim, dim}); // 1.
     auto A   = 162. * xt::diag(xt::xarray<double>{-1., -1.}); // 162.
     auto P   = 3337. * xt::diag(xt::xarray<double>{1., 1.}); // 3337.
     auto K_1 = 1. * xt::diag(xt::xarray<double>{1., 1.}); // 1.
