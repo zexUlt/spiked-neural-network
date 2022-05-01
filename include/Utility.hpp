@@ -1,9 +1,12 @@
 #pragma once
 
 #include "SpikeDNNet.hpp"
+#include "debug_header.hpp"
 
 #include <xtensor/xview.hpp>
-#include "debug_header.hpp"
+#include <xtensor/xnpy.hpp>
+
+#include <xtensor-blas/xlinalg.hpp>
 
 #include <map>
 #include <string>
@@ -116,5 +119,21 @@ public:
         auto output_errors = xt::average(absol);
 
         return xt::average(output_errors)();
+    }
+
+    static void dumpData(xt::xarray<double> tr_target, xt::xarray<double> tr_control, ValidationResults data)
+    {
+        auto error = xt::abs(xt::col(tr_target, 0) - xt::col(data.tr_est[0], 1));
+        auto wdiff1 = xt::diff(xt::view(data.W_1, xt::all(), xt::all(), 0), 1, 0);
+        auto wdiff2 = xt::diff(xt::view(data.W_2, xt::all(), xt::all(), 0), 1, 0);
+
+        xt::dump_npy("../plot_data/error.npy", xt::degrees(error));
+        xt::dump_npy("../plot_data/control.npy", xt::degrees(tr_control));  
+        xt::dump_npy("../plot_data/target.npy", xt::degrees(xt::col(tr_target, 0)));
+        xt::dump_npy("../plot_data/estimation.npy", xt::degrees(xt::col(data.tr_est[0], 0)));
+        xt::dump_npy("../plot_data/target2.npy", xt::degrees(xt::col(tr_target, 1)));
+        xt::dump_npy("../plot_data/estimation2.npy", xt::degrees(xt::col(data.tr_est[0], 1)));
+        xt::dump_npy("../plot_data/wdiff1.npy", wdiff1);
+        xt::dump_npy("../plot_data/wdiff2.npy", wdiff2);
     }
 };
