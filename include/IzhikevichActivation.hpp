@@ -8,6 +8,8 @@ namespace CxxSDNN{
 class IzhikevichActivation : public AbstractActivation
 {
 private:
+    double input_scale;
+    double output_scale;
     double izh_border;
     double param_a;
     double param_b;
@@ -20,14 +22,21 @@ private:
 
 public:
     explicit IzhikevichActivation(
+        double i_scale, double o_scale,
         double _izh_border, double a, 
         double b, double c,
-        double d, double e, std::uint32_t _dim);
+        double d, double e, std::uint32_t _dim
+    );
 
     explicit IzhikevichActivation(
+        double i_scale, double o_scale,
         double _izh_border, double a, 
         double b, double c,
         double d, double e
+    );
+
+    explicit IzhikevichActivation(
+        double i_scale, double o_scale
     );
 
     explicit IzhikevichActivation(
