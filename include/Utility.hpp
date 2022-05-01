@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SpikeDNNet.hpp"
+#include "IzhikevichActivation.hpp"
 #include "debug_header.hpp"
 
 #include <xtensor/xview.hpp>
@@ -12,6 +13,24 @@
 #include <string>
 #include <iosfwd>
 
+
+enum class NeuronType
+{
+    // Regular Spiking
+    RegularSpiking,
+    // Intrinsically Bursting
+    IntrinsicallyBursting,
+    // Chattering
+    Chattering,
+    //Fast Spiking
+    FastSpiking,
+    // Low-threshold Spiking
+    LowThresholdSpiking,
+    // Thalamo-Cortical
+    ThalamoCortical,
+    // Resonator
+    Resonator
+};
 
 class UtilityFunctionLibrary
 {
@@ -28,6 +47,8 @@ public:
         std::vector<xt::xarray<double>> vl_res;
         xt::xarray<double> W_1;
         xt::xarray<double> W_2;
+        xt::xarray<double> N_1;
+        xt::xarray<double> N_2;
 
         friend std::ostream& operator<<(std::ostream& out, UtilityFunctionLibrary::ValidationResults res)
         {
@@ -97,6 +118,8 @@ public:
         results.vl_res.emplace_back(vl_pred);
         results.W_1 = dnn.get_weights(0);
         results.W_2 = dnn.get_weights(1);
+        results.N_1 = dnn.get_neurons_history(0);
+        results.N_2 = dnn.get_neurons_history(1);
 
         return results;
     }
@@ -133,5 +156,39 @@ public:
         xt::dump_npy("../plot_data/estimation2.npy", xt::degrees(xt::col(data.tr_est[0], 1)));
         xt::dump_npy("../plot_data/wdiff1.npy", wdiff1);
         xt::dump_npy("../plot_data/wdiff2.npy", wdiff2);
+        xt::dump_npy("../plot_data/neuro1.npy", xt::col(data.N_1, 0));
+        xt::dump_npy("../plot_data/neuro2.npy", xt::col(data.N_2, 0));
+    }
+
+    static std::unique_ptr<CxxSDNN::IzhikevichActivation> make_izhikevich(double input_scale, double output_scale, std::uint32_t dim, NeuronType type)
+    {
+        using Izhi = CxxSDNN::IzhikevichActivation;
+        std::unique_ptr<Izhi> out;
+        
+        switch(type){
+            case NeuronType::RegularSpiking:
+                out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.2, -65, 8, -65, dim);
+                break;
+            case NeuronType::IntrinsicallyBursting:
+                out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.2, -55, 4, -65, dim);
+                break;
+            case NeuronType::Chattering:
+                out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.2, -50, 2, -65, dim);
+                break;
+            case NeuronType::FastSpiking:
+                out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.1, 0.2, -65, 2, -65, dim);
+                break;
+            case NeuronType::LowThresholdSpiking:
+                out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.25, -65, 2, -65, dim);
+                break;
+            case NeuronType::ThalamoCortical:
+                out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.25, -65, 0.05, -65, dim);
+                break;
+            case NeuronType::Resonator:
+                out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.1, 0.26, -65, 2, -65, dim);
+                break;
+        }
+
+        return out;
     }
 };
