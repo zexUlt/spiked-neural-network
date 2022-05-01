@@ -69,7 +69,6 @@ xt::xarray<double> SpikeDNNet::smooth(xt::xarray<double> x, std::uint32_t w)
             auto slice_x = xt::view(x, xt::all(), i, j);
             auto m_av = moving_average(slice_x, w);
             xt::view(new_x, xt::all(), i, j).assign(m_av);
-            // slice_new_x = m_av;
         }
     }
 
@@ -92,7 +91,8 @@ xt::xarray<double> SpikeDNNet::fit(
     this->array_hist_W_1 = xt::ones<double>({nt, this->mat_dim, this->mat_dim});
     this->array_hist_W_2 = xt::ones<double>({nt, this->mat_dim, this->mat_dim});
 
-    
+    this->neuron_1_hist = xt::ones<double>({nt, this->mat_dim});
+    this->neuron_2_hist = xt::ones<double>({nt, this->mat_dim});
 
     for(int e = 0; e < n_epochs; ++e){
         vec_x = xt::eval(xt::flip(vec_x, 0));
@@ -108,8 +108,8 @@ xt::xarray<double> SpikeDNNet::fit(
             xt::xarray<double> current_vec_u   = xt::view(vec_u, i);
             xt::xarray<double> current_delta   = current_vec_est - xt::view(vec_x, i);
 
-            auto neuron_out_1 = this->afunc_1->operator()(current_vec_est, 0.01);
-            auto neuron_out_2 = this->afunc_2->operator()(current_vec_est, 0.01);
+            auto neuron_out_1 = this->afunc_1->operator()(current_vec_est, 0.005);
+            auto neuron_out_2 = this->afunc_2->operator()(current_vec_est, 0.005);
             
             auto vec_est_next = xt::view(vec_est, i + 1);
             vec_est_next = xt::eval(current_vec_est + step * (
@@ -143,6 +143,9 @@ xt::xarray<double> SpikeDNNet::fit(
 
             xt::view(this->array_hist_W_1, i).assign(this->mat_W_1);
             xt::view(this->array_hist_W_2, i).assign(this->mat_W_2);
+
+            xt::view(this->neuron_1_hist, i).assign(neuron_out_1.reshape({2}));
+            xt::view(this->neuron_2_hist, i).assign(neuron_out_2.reshape({2}));
         }
         this->smoothed_W_1 = this->smooth(this->array_hist_W_1, k_points);
         this->smoothed_W_2 = this->smooth(this->array_hist_W_2, k_points);
@@ -198,3 +201,15 @@ xt::xarray<double> SpikeDNNet::get_weights(std::uint8_t idx) const
     return xt::xarray<double>();
 }
 
+xt::xarray<double> SpikeDNNet::get_neurons_history(std::uint8_t idx) const
+{
+    if(idx == 0){
+        return this->neuron_1_hist;
+    }
+
+    if(idx == 1){
+        return this->neuron_2_hist;
+    }
+
+    return xt::xarray<double>();
+}
