@@ -2,6 +2,7 @@
 
 #include "xtensor/xarray.hpp"
 
+#include <memory>
 
 namespace CxxSDNN{
 
@@ -23,15 +24,13 @@ private:
     xt::xarray<double> array_hist_W_2;
     xt::xarray<double> smoothed_W_1;
     xt::xarray<double> smoothed_W_2;
-    AbstractActivation* afunc_1;
-    AbstractActivation* afunc_2;
-
-    // SpikeDNNet(){};
+    std::unique_ptr<AbstractActivation> afunc_1;
+    std::unique_ptr<AbstractActivation> afunc_2;
 
 public:
     explicit SpikeDNNet(
-        AbstractActivation* act_func_1,
-        AbstractActivation* act_func_2,
+        std::unique_ptr<AbstractActivation> act_func_1,
+        std::unique_ptr<AbstractActivation> act_func_2,
         xt::xarray<double> mat_W_1,
         xt::xarray<double> mat_W_2,
         size_t dim = 2,
@@ -41,9 +40,9 @@ public:
         xt::xarray<double> mat_K_2 = .15 * xt::diag(xt::xarray<double>({1., 1.}))
     );
 
-    SpikeDNNet(const SpikeDNNet& other);
+    SpikeDNNet(const SpikeDNNet& other) noexcept;
 
-    SpikeDNNet& operator=(const SpikeDNNet& other);
+    SpikeDNNet& operator=(const SpikeDNNet& other) noexcept;
 
     static xt::xarray<double> moving_average(xt::xarray<double> x, std::uint32_t w = 2);
 

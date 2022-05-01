@@ -5,10 +5,6 @@
 
 #include <xtensor/xarray.hpp>
 #include <xtensor/xio.hpp>
-#include <xtensor/xview.hpp>
-#include <xtensor/xnpy.hpp>
-
-#include <xtensor-blas/xlinalg.hpp>
 
 #include <istream>
 #include <fstream>
@@ -28,22 +24,19 @@ int main(int argc, char** argv)
     const std::uint32_t n_epochs = 1u;
     const std::uint32_t k_points = 1u;
 
-
-    auto izh_act_1 = new CxxSDNN::IzhikevichActivation(dim);
-    auto izh_act_2 = new CxxSDNN::IzhikevichActivation(dim);
-    // auto sigm_act_1 = new CxxSDNN::SigmoidActivation();
-    // auto sigm_act_2 = new CxxSDNN::SigmoidActivation();
+    std::unique_ptr<CxxSDNN::IzhikevichActivation> izh_act_1 = std::make_unique<CxxSDNN::IzhikevichActivation>(dim);
+    std::unique_ptr<CxxSDNN::IzhikevichActivation> izh_act_2 = std::make_unique<CxxSDNN::IzhikevichActivation>(dim);
 
 
-    auto W_1 = 1. * xt::ones<double>({dim, dim})  ;
-    auto W_2 = 1. * xt::ones<double>({dim, dim});
-    auto A   = 162. * xt::diag(xt::xarray<double>{-1., -1.});
-    auto P   = 3337 * xt::diag(xt::xarray<double>{1., 1.});
-    auto K_1 = 1 * xt::diag(xt::xarray<double>{1., 1.});
-    auto K_2 = 0.1 * xt::diag(xt::xarray<double>{1., 1.});  
+    auto W_1 = .01 * xt::ones<double>({dim, dim}); // 1.
+    auto W_2 = 10. * xt::ones<double>({dim, dim}); // 1.
+    auto A   = 162. * xt::diag(xt::xarray<double>{-1., -1.}); // 162.
+    auto P   = 3337. * xt::diag(xt::xarray<double>{1., 1.}); // 3337.
+    auto K_1 = 1. * xt::diag(xt::xarray<double>{1., 1.}); // 1.
+    auto K_2 = .1 * xt::diag(xt::xarray<double>{1., 1.});  // 0.1
 
     CxxSDNN::SpikeDNNet dnn(
-        izh_act_1, izh_act_2, // Activation functions
+        std::move(izh_act_1), std::move(izh_act_2), // Activation functions
         W_1, W_2, // W_1, W_2
         dim, A, // dim, mat_A
         P, K_1, // mat_P, K_1
@@ -62,17 +55,8 @@ int main(int argc, char** argv)
     auto res = UtilityFunctionLibrary::dnn_validate(dnn, folds, n_epochs, k_points);
 
     std::cout << res;
-    
-    auto error = xt::abs(xt::col(tr_target, 0) - xt::col(res.tr_est[0], 1));
-    // auto wdiff1 = xt::diff(res.W_1)
-    xt::dump_npy("../plot_data/error.npy", xt::degrees(error));
-    xt::dump_npy("../plot_data/control.npy", xt::degrees(tr_control));  
-    xt::dump_npy("../plot_data/target.npy", xt::degrees(xt::col(tr_target, 0)));
-    xt::dump_npy("../plot_data/estimation.npy", xt::degrees(xt::col(res.tr_est[0], 0)));
-    xt::dump_npy("../plot_data/target2.npy", xt::degrees(xt::col(tr_target, 1)));
-    xt::dump_npy("../plot_data/estimation2.npy", xt::degrees(xt::col(res.tr_est[0], 1)));
 
-    delete izh_act_1;
-    delete izh_act_2;
+    UtilityFunctionLibrary::dumpData(tr_target, tr_control, res);
+
     return 0;
 }

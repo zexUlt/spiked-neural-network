@@ -8,12 +8,11 @@
 #include "debug_header.hpp"
 
 
-
 using CxxSDNN::SpikeDNNet;
 
 SpikeDNNet::SpikeDNNet(
-        AbstractActivation* act_func_1,
-        AbstractActivation* act_func_2,
+        std::unique_ptr<AbstractActivation> act_func_1,
+        std::unique_ptr<AbstractActivation> act_func_2,
         xt::xarray<double> _mat_W_1,
         xt::xarray<double> _mat_W_2,
         size_t dim,
@@ -22,19 +21,19 @@ SpikeDNNet::SpikeDNNet(
         xt::xarray<double> _mat_K_1,
         xt::xarray<double> _mat_K_2
     ) :
-    afunc_1{act_func_1}, afunc_2{act_func_2}, mat_A{_mat_A},
+    afunc_1{std::move(act_func_1)}, afunc_2{std::move(act_func_2)}, mat_A{_mat_A},
     mat_P{_mat_P}, mat_K_1{_mat_K_1}, mat_K_2{_mat_K_2},
     init_mat_W_1{_mat_W_1}, init_mat_W_2{_mat_W_2}, mat_dim{dim}
 {
 
 }
 
-SpikeDNNet::SpikeDNNet(const SpikeDNNet& other)
+SpikeDNNet::SpikeDNNet(const SpikeDNNet& other) noexcept
 {
     *this = other;
 }
 
-SpikeDNNet& SpikeDNNet::operator=(const SpikeDNNet& other)
+SpikeDNNet& SpikeDNNet::operator=(const SpikeDNNet& other) noexcept
 {
    this->mat_A = other.mat_A;
    this->mat_P = other.mat_P;
@@ -107,8 +106,6 @@ xt::xarray<double> SpikeDNNet::fit(
             xt::xarray<double> current_vec_est = xt::view(vec_est, i);
             xt::xarray<double> current_vec_u   = xt::view(vec_u, i);
             xt::xarray<double> current_delta   = current_vec_est - xt::view(vec_x, i);
-            DEBUG_XARRAY(current_delta);
-            std::cout << i << '\n';
 
             auto neuron_out_1 = this->afunc_1->operator()(current_vec_est, 0.01);
             auto neuron_out_2 = this->afunc_2->operator()(current_vec_est, 0.01);
@@ -182,7 +179,7 @@ xt::xarray<double> SpikeDNNet::predict(
             )
         );
     }
-    std::cout << "Predict Success\n";
+
     return vec_est;
 }
 
