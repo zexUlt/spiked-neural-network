@@ -24,6 +24,8 @@ private:
     xt::xarray<double> array_hist_W_2;
     xt::xarray<double> smoothed_W_1;
     xt::xarray<double> smoothed_W_2;
+    xt::xarray<double> neuron_1_hist;
+    xt::xarray<double> neuron_2_hist;
     std::unique_ptr<AbstractActivation> afunc_1;
     std::unique_ptr<AbstractActivation> afunc_2;
 
@@ -61,6 +63,8 @@ public:
         double step = .01);
 
     xt::xarray<double> get_weights(std::uint8_t idx) const;
+
+    xt::xarray<double> get_neurons_history(std::uint8_t idx) const;
 };
 
 };
