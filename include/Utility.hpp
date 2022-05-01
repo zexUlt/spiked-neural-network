@@ -40,18 +40,16 @@ public:
 
     };
 
-
-    template<typename dtype>
-    static xt::xarray<dtype> convolveValid(const xt::xarray<dtype>& f, const xt::xarray<dtype>& g)
+    static xt::xarray<double> convolveValid(const xt::xarray<double>& f, const xt::xarray<double>& g)
     {
         const auto nf = f.size();
         const auto ng = g.size();
-        
+
         const auto& min_v = (nf < ng) ? f : g;
         const auto& max_v = (nf < ng) ? g : f;
         const auto n = std::max(nf, ng) - std::min(nf, ng) + 1;
-        std::vector<size_t> shape{n};
-        xt::xarray<dtype> out(shape);
+        
+        xt::xarray<double> out = xt::zeros<double>({n});
 
         for(auto i(0u); i < n; ++i){
             for(int j(min_v.size() - 1), k(i); j >= 0; --j, ++k){
