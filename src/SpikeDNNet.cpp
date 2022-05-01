@@ -53,7 +53,7 @@ SpikeDNNet& SpikeDNNet::operator=(const SpikeDNNet& other) noexcept
 
 xt::xarray<double> SpikeDNNet::moving_average(xt::xarray<double> x, std::uint32_t w)
 {
-    return UtilityFunctionLibrary::convolveValid<double>(x, xt::ones<double>({w})) / static_cast<double>(w);
+    return UtilityFunctionLibrary::convolveValid(x, xt::ones<double>({w})) / static_cast<double>(w);
 }
 
 xt::xarray<double> SpikeDNNet::smooth(xt::xarray<double> x, std::uint32_t w)
@@ -62,13 +62,14 @@ xt::xarray<double> SpikeDNNet::smooth(xt::xarray<double> x, std::uint32_t w)
     auto m = x.shape(1);
     auto n = x.shape(2);
     auto new_sizeZ = l - w + 1u;
-    xt::xarray<double> new_x = xt::ones<double>({new_sizeZ, m, n}); 
+    xt::xarray<double> new_x = xt::ones<double>({new_sizeZ, m, n});
 
     for(auto i = 0u; i < m; ++i){
         for(auto j = 0u; j < n; ++j){
             auto slice_x = xt::view(x, xt::all(), i, j);
             auto m_av = moving_average(slice_x, w);
-            slice_x = m_av;;
+            xt::view(new_x, xt::all(), i, j).assign(m_av);
+            // slice_new_x = m_av;
         }
     }
 
