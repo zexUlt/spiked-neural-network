@@ -6,41 +6,50 @@
 using CxxSDNN::IzhikevichActivation;
 
 IzhikevichActivation::IzhikevichActivation(
+        double i_scale, double o_scale,
         double _izh_border, double a, 
         double b, double c,
         double d, double e, std::uint32_t _dim) :
-        izh_border{_izh_border}, param_a{a}, param_b{b}, param_c{c},
-        param_d{d}, param_e{e}, dim{_dim}
+        input_scale{i_scale}, output_scale{o_scale}, izh_border{_izh_border}, 
+        param_a{a}, param_b{b}, param_c{c}, param_d{d}, param_e{e}, dim{_dim}
 {
     control = xt::eval(xt::ones<double>({dim}) * param_b * param_e);
     state   = xt::eval(xt::ones<double>({dim}) * param_e);
 }
 
 IzhikevichActivation::IzhikevichActivation(
+        double i_scale, double o_scale,
         double _izh_border, double a, 
         double b, double c,
         double d, double e
-    ) : IzhikevichActivation(_izh_border, a, b, c, d, e, 2)
+    ) : IzhikevichActivation(i_scale, o_scale, _izh_border, a, b, c, d, e, 2)
+{
+
+}
+
+IzhikevichActivation::IzhikevichActivation(
+    double i_scale, double o_scale
+) : IzhikevichActivation(i_scale, o_scale, 30, 2e-2, 0.2, -65, 8, -65, 2u)
 {
 
 }
 
 IzhikevichActivation::IzhikevichActivation(
         double _izh_border
-    ) : IzhikevichActivation(_izh_border, 2e-2, 0.2, -65, 8, -65)
+    ) : IzhikevichActivation(80., 1/60., _izh_border, 2e-2, 0.2, -65, 8, -65)
 {
 
 }
 
 IzhikevichActivation::IzhikevichActivation(
         std::uint32_t _dim
-    ) : IzhikevichActivation(30, 2e-2, 0.2, -65, 8, -65, _dim)
+    ) : IzhikevichActivation(80., 1/60., 30, 2e-2, 0.2, -65, 8, -65, _dim)
 {
 
 }
 
 IzhikevichActivation::IzhikevichActivation() : 
-    IzhikevichActivation(30, 2e-2, 0.2, -65, 8, -65, 2u) 
+    IzhikevichActivation(80., 1/60., 30, 2e-2, 0.2, -65, 8, -65, 2u) 
 {
     
 }
@@ -52,7 +61,7 @@ xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, do
     auto self_state_dot = xt::linalg::dot(this->state, this->state);
 
     auto _state = this->state + step * ( 
-        .04 * self_state_dot + 5. * this->state + 140. - this->control + input * 100
+        .04 * self_state_dot + 5. * this->state + 140. - this->control + input * this->input_scale
     );
     
     this->control += step * (
@@ -68,5 +77,5 @@ xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, do
         this->state = _state;
     }
 
-    return this->state / 80;
+    return this->state * this->output_scale;
 }
