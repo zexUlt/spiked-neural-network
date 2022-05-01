@@ -4,17 +4,6 @@ project("spiked-neural-network" CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 
-option(WITH_DEBUG_SYMBOLS "Whether to build with debug symbols or not" OFF)
-
-# =======================================
-#    CHOOSING BUILD TYPE
-# =======================================
-if(WITH_DEBUG_SYMBOLS)
-    set(CMAKE_BUILD_TYPE Debug)
-else()
-    set(CMAKE_BUILD_TYPE Release)
-endif()
-
 message(STATUS "Set build type to ${CMAKE_BUILD_TYPE}")
 
 # =======================================
