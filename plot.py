@@ -60,10 +60,6 @@ axs[2, 1].plot(time[:-2],
         color='tab:blue',
         lw='2')
 
-axs[0, 0].set_xlabel('Time (s)', fontsize=12)
-axs[0, 1].set_xlabel('Time (s)', fontsize=12)
-axs[1, 1].set_xlabel('Time (s)', fontsize=12)
-axs[1, 0].set_xlabel('Time (s)', fontsize=12)
 axs[2, 0].set_xlabel('Time (s)', fontsize=12)
 axs[2, 1].set_xlabel('Time (s)', fontsize=12)
 
@@ -71,8 +67,7 @@ axs[0, 0].set_ylabel("Angle of head rotation (°)", fontsize=12)
 axs[1, 0].set_ylabel("Angle of eye rotation 1 (°)", fontsize=12)
 axs[1, 1].set_ylabel("Angle of eye rotation 2 (°)", fontsize=12)
 axs[0, 1].set_ylabel('Error (°)', fontsize=12)
-axs[2, 0].set_ylabel('Dynamics of changes in weights 1', fontsize=12)
-axs[2, 1].set_ylabel('Dynamics of changes in weights 2', fontsize=12)
+axs[2, 0].set_ylabel('Dynamics of changes in weights', fontsize=12)
 
 
 axs[1, 0].legend(['Identification', 'Experimental data'])
