@@ -67,7 +67,6 @@ xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, do
     }else{
         this->state = _state;
     }
-    DEBUG_XARRAY(this->state);
-    DEBUG_XARRAY(_state);
+
     return this->state / 80;
 }
