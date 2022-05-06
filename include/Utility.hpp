@@ -12,6 +12,7 @@
 #include <map>
 #include <string>
 #include <iosfwd>
+#include <chrono>
 
 
 enum class NeuronType
@@ -42,7 +43,6 @@ public:
     {
         std::pair<double, double> mse_res;
         std::pair<double, double> mae_res;
-        std::pair<double, double> smae_res;
         std::vector<xt::xarray<double>> tr_est;
         std::vector<xt::xarray<double>> vl_res;
         xt::xarray<double> W_1;
@@ -54,7 +54,6 @@ public:
         {
             out << "MSE: [Train: " << res.mse_res.first << ", Test:" << res.mse_res.second << "]\n";
             out << "MAE: [Train: " << res.mae_res.first << ", Test:" << res.mae_res.second << "]\n";
-            out << "sMAE: [Train: " << res.smae_res.first << ", Test:" << res.smae_res.second << "]\n";
 
             return out;
         }
@@ -109,11 +108,6 @@ public:
             UtilityFunctionLibrary::mean_absolute_error<double>(vl_col, pred_col)
         );
 
-        results.smae_res = std::make_pair(
-            (results.mae_res.first / xt::mean(tr_col)()),
-            (results.mae_res.second / xt::mean(vl_col)())
-        );
-
         results.tr_est.emplace_back(target_est);
         results.vl_res.emplace_back(vl_pred);
         results.W_1 = dnn.get_weights(0);
@@ -144,7 +138,7 @@ public:
 
     static void dumpData(xt::xarray<double> tr_target, xt::xarray<double> tr_control, ValidationResults data)
     {
-        auto error = xt::abs(xt::col(tr_target, 0) - xt::col(data.tr_est[0], 1));
+        auto error = xt::abs(xt::col(tr_target, 0) - xt::col(data.tr_est[0], 0));
         auto wdiff1 = xt::diff(xt::view(data.W_1, xt::all(), xt::all(), 0), 1, 0);
         auto wdiff2 = xt::diff(xt::view(data.W_2, xt::all(), xt::all(), 0), 1, 0);
 
@@ -156,8 +150,11 @@ public:
         xt::dump_npy("../plot_data/estimation2.npy", xt::degrees(xt::col(data.tr_est[0], 1)));
         xt::dump_npy("../plot_data/wdiff1.npy", wdiff1);
         xt::dump_npy("../plot_data/wdiff2.npy", wdiff2);
-        xt::dump_npy("../plot_data/neuro1.npy", xt::col(data.N_1, 0));
-        xt::dump_npy("../plot_data/neuro2.npy", xt::col(data.N_2, 0));
+        xt::dump_npy("../plot_data/neuro11.npy", xt::col(data.N_1, 0));
+        xt::dump_npy("../plot_data/neuro12.npy", xt::col(data.N_1, 1));
+        xt::dump_npy("../plot_data/neuro21.npy", xt::col(data.N_2, 0));
+        xt::dump_npy("../plot_data/neuro22.npy", xt::col(data.N_2, 1));
+
     }
 
     static std::unique_ptr<CxxSDNN::IzhikevichActivation> make_izhikevich(double input_scale, double output_scale, std::uint32_t dim, NeuronType type)
@@ -179,7 +176,7 @@ public:
                 out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.1, 0.2, -65, 2, -65, dim);
                 break;
             case NeuronType::LowThresholdSpiking:
-                out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.25, -65, 2, -65, dim);
+                out = std::make_unique<Izhi>(input_scale, output_scale, 30, 0.02, 0.25, -65, 2, -65, dim);
                 break;
             case NeuronType::ThalamoCortical:
                 out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.25, -65, 0.05, -65, dim);
@@ -190,5 +187,19 @@ public:
         }
 
         return out;
+    }
+
+    static double timeit(std::function<void(void)> foo, std::uint32_t count = 1)
+    {
+        std::vector<double> times(count);
+
+        for(auto i = 0u; i < count; ++i){
+            auto begin = std::chrono::steady_clock::now();
+            foo();
+            auto end = std::chrono::steady_clock::now();
+            times[i] = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() / 3305.;
+        }
+
+        return std::accumulate(times.begin(), times.end(), 0.) / count;
     }
 };
