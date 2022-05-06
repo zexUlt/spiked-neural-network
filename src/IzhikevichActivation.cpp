@@ -1,6 +1,7 @@
 #include "IzhikevichActivation.hpp"
 
 #include "xtensor-blas/xlinalg.hpp"
+#include "xtensor/xmasked_view.hpp"
 #include "debug_header.hpp"
 
 using CxxSDNN::IzhikevichActivation;
@@ -58,24 +59,28 @@ xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, do
 {
     auto vec_scale = xt::ones<double>({this->dim}); 
 
-    auto self_state_dot = xt::linalg::dot(this->state, this->state);
+    // auto self_state_dot = xt::linalg::dot(this->state, this->state);
 
-    auto _state = this->state + step * ( 
-        .04 * self_state_dot + 5. * this->state + 140. - this->control + input * this->input_scale
+    this->state += step / 2 * ( 
+        .04 * this->state * this->state + 5. * this->state + 140. - this->control + input * this->input_scale
     );
-    
+
+    this->state += step / 2 * ( 
+        .04 * this->state * this->state + 5. * this->state + 140. - this->control + input * this->input_scale
+    );
+
     this->control += step * (
         this->param_a * (
             this->param_b * this->state - this->control
         )
     );
 
-    if(xt::all(_state > this->izh_border)){
-        this->state = vec_scale * this->param_c;
-        this->control = vec_scale * this->param_d;
-    }else{
-        this->state = _state;
-    }
+    auto beyond_border = this->state > this->izh_border;
+    auto state_beyond = xt::masked_view(this->state, beyond_border);
+    auto control_by_state = xt::masked_view(this->control, beyond_border);
+
+    state_beyond = vec_scale * this->param_c;
+    control_by_state = vec_scale * this->param_d;
 
     return this->state * this->output_scale;
 }
