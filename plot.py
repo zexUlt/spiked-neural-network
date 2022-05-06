@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-time = time = np.linspace(0, 4394, 4394)[:3305] / 110
+time = time = np.linspace(0, 4394, 4394)[:3304] / 110
 tr_target = np.load('plot_data/target.npy')
 tr_control = np.load('plot_data/control.npy')
 tr_est = np.load('plot_data/estimation.npy')
@@ -11,8 +11,10 @@ tr_target_2 = np.load('plot_data/target2.npy')
 tr_est_2 = np.load('plot_data/estimation2.npy')
 wdiff1 = np.load('plot_data/wdiff1.npy').reshape(-1 ,2)
 wdiff2 = np.load('plot_data/wdiff2.npy').reshape(-1 ,2)
-neuro1 = np.load('plot_data/neuro1.npy')
-neuro2 = np.load('plot_data/neuro2.npy')
+neuro11 = np.load('plot_data/neuro11.npy')
+neuro12 = np.load('plot_data/neuro12.npy')
+neuro21 = np.load('plot_data/neuro21.npy')
+neuro22 = np.load('plot_data/neuro22.npy')
 
 
 fig, axs = plt.subplots(4, 2, figsize=(16, 8))
@@ -51,25 +53,36 @@ axs[1, 1].plot(time,
         color='tab:blue',
         lw='2')
 
-axs[2, 0].plot(time[:-2],
+axs[2, 0].plot(time[:-1],
         np.abs(wdiff1[:, 0][:3303]),
         color=(165/255, 172/255, 175/255),
         lw='2')
 
-axs[2, 1].plot(time[:-2],
+axs[2, 1].plot(time[:-1],
         np.abs(wdiff2[:, 1][:3303]),
         color='tab:blue',
         lw='2')
 
-axs[3, 0].plot(time[:-2],
-        neuro1[:3303],
+axs[3, 0].plot(time[:-1],
+        neuro11[:3303],
         color='tab:blue',
         lw='2')
 
-axs[3, 1].plot(time[:-2],
-        neuro2[:3303],
+axs[3, 0].plot(time[:-1],
+        neuro12[:3303],
+        color='tab:orange',
+        lw='2')
+
+axs[3, 1].plot(time[:-1],
+        neuro21[:3303],
         color='tab:blue',
         lw='2')
+
+axs[3, 1].plot(time[:-1],
+        neuro22[:3303],
+        color='tab:orange',
+        lw='2')
+
 
 axs[3, 0].set_xlabel('Time (s)', fontsize=12)
 axs[3, 1].set_xlabel('Time (s)', fontsize=12)
@@ -86,8 +99,8 @@ axs[1, 0].legend(['Identification', 'Experimental data'])
 axs[1, 1].legend(['Identification', 'Experimental data'])
 axs[2, 0].legend(['W_1'])
 axs[2, 1].legend(['W_2'])
-axs[3, 0].legend(['Neuron 1'])
-axs[3, 1].legend(['Neuron 2'])
+axs[3, 0].legend(['Neuron 1', "Neuron 2"])
+axs[3, 1].legend(['Neuron 1', "Neuron 2"])
 
 # axs[0, 0].text(-0.1, 1., 'A', transform=axs[0, 0].transAxes,
 #                 size=20, weight='bold')
