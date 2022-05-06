@@ -108,8 +108,8 @@ xt::xarray<double> SpikeDNNet::fit(
             xt::xarray<double> current_vec_u   = xt::view(vec_u, i);
             xt::xarray<double> current_delta   = current_vec_est - xt::view(vec_x, i);
 
-            auto neuron_out_1 = this->afunc_1->operator()(current_vec_est, 0.005);
-            auto neuron_out_2 = this->afunc_2->operator()(current_vec_est, 0.005);
+            auto neuron_out_1 = this->afunc_1->operator()(current_vec_est, 0.01);
+            auto neuron_out_2 = this->afunc_2->operator()(current_vec_est, 0.01);
             
             auto vec_est_next = xt::view(vec_est, i + 1);
             vec_est_next = xt::eval(current_vec_est + step * (
@@ -144,8 +144,8 @@ xt::xarray<double> SpikeDNNet::fit(
             xt::view(this->array_hist_W_1, i).assign(this->mat_W_1);
             xt::view(this->array_hist_W_2, i).assign(this->mat_W_2);
 
-            xt::view(this->neuron_1_hist, i).assign(neuron_out_1.reshape({2}));
-            xt::view(this->neuron_2_hist, i).assign(neuron_out_2.reshape({2}));
+            // xt::view(this->neuron_1_hist, i).assign(neuron_out_1.reshape({2}));
+            // xt::view(this->neuron_2_hist, i).assign(neuron_out_2.reshape({2}));
         }
         this->smoothed_W_1 = this->smooth(this->array_hist_W_1, k_points);
         this->smoothed_W_2 = this->smooth(this->array_hist_W_2, k_points);
