@@ -1,6 +1,7 @@
 #pragma once
 
 #include "xtensor/xarray.hpp"
+#include "xtensor/xio.hpp"
 
 #include <memory>
 
@@ -65,6 +66,34 @@ public:
     xt::xarray<double> get_weights(std::uint8_t idx) const;
 
     xt::xarray<double> get_neurons_history(std::uint8_t idx) const;
+
+    const xt::xarray<double>& get_A() const;
+    const xt::xarray<double>& get_P() const;
+    const xt::xarray<double>& get_K1() const;
+    const xt::xarray<double>& get_K2() const;
+    const xt::xarray<double>& get_W10() const;
+    const xt::xarray<double>& get_W20() const;
+    const std::string get_afunc_descr(size_t idx) const;
+
+    friend std::ostream& operator<<(std::ostream& out, const SpikeDNNet& dnn)
+    {
+        out << "SDNN model.\n";
+        out << "\n=================================\n";
+        out << "Configuration: \n";
+        out << "A =\n" << dnn.get_A() << '\n';
+        out << "P =\n" << dnn.get_P() << '\n';
+        out << "W10 =\n" << dnn.get_W10() << '\n';
+        out << "W20 =\n" << dnn.get_W20() << '\n';
+        out << "K1 =\n" << dnn.get_K1() << '\n';
+        out << "K2 =\n" << dnn.get_K2() << '\n';
+        out << "\n=================================\n\n";
+        out << "First activation component: \n" << dnn.get_afunc_descr(0) << '\n';
+        out << "\n=================================\n\n";
+        out << "Second activation component: \n" << dnn.get_afunc_descr(1) << '\n';
+        out << "\n=================================\n\n\n";
+
+        return out;
+    }
+};
 };
 
-};
