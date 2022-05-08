@@ -84,15 +84,15 @@ xt::xarray<double> SpikeDNNet::fit(
 {
     auto nt = vec_u.shape(0);
     xt::xarray<double> vec_est = 0.1 * xt::ones<double>({nt, this->mat_dim});
- 
+
     this->mat_W_1 = this->init_mat_W_1;
     this->mat_W_2 = this->init_mat_W_2;
 
     this->array_hist_W_1 = xt::ones<double>({nt, this->mat_dim, this->mat_dim});
     this->array_hist_W_2 = xt::ones<double>({nt, this->mat_dim, this->mat_dim});
 
-    this->neuron_1_hist = xt::ones<double>({nt, this->mat_dim});
-    this->neuron_2_hist = xt::ones<double>({nt, this->mat_dim});
+    this->neuron_1_hist = xt::ones<double>({nt, this->mat_dim, size_t(1)});
+    this->neuron_2_hist = xt::ones<double>({nt, this->mat_dim, vec_u.shape(1)});
 
     for(int e = 0; e < n_epochs; ++e){
         vec_x = xt::eval(xt::flip(vec_x, 0));
@@ -110,23 +110,23 @@ xt::xarray<double> SpikeDNNet::fit(
 
             auto neuron_out_1 = this->afunc_1->operator()(current_vec_est, 0.01);
             auto neuron_out_2 = this->afunc_2->operator()(current_vec_est, 0.01);
-            
+
             auto vec_est_next = xt::view(vec_est, i + 1);
             vec_est_next = xt::eval(current_vec_est + step * (
-                xt::linalg::dot(this->mat_A, current_vec_est) +
-                xt::linalg::dot(this->mat_W_1, neuron_out_1) +
+                xt::squeeze(xt::linalg::dot(this->mat_A, current_vec_est)) +
+                xt::squeeze(xt::linalg::dot(this->mat_W_1, neuron_out_1))) +
                 xt::linalg::dot(
-                    xt::linalg::dot(this->mat_W_2, xt::diag(neuron_out_2)), 
+                    xt::linalg::dot(this->mat_W_2, neuron_out_2), // (4x4)x(4x2)
                     current_vec_u)
-            ));
-            
+            );
+
             this->mat_W_1 -= step * (
                 xt::linalg::dot(
                     xt::linalg::dot(
                         xt::linalg::dot(this->mat_K_1, this->mat_P), 
                         current_delta.reshape({-1, 1})
                     ),
-                neuron_out_1.reshape({1, -1}))
+                xt::transpose(neuron_out_1))
             );
 
             this->mat_W_2 -= step * (
@@ -138,15 +138,16 @@ xt::xarray<double> SpikeDNNet::fit(
                         ),
                         current_vec_u.reshape({1, -1})
                     ),
-                xt::diag(neuron_out_2))
+                xt::transpose(neuron_out_2))
             );
 
             xt::view(this->array_hist_W_1, i).assign(this->mat_W_1);
             xt::view(this->array_hist_W_2, i).assign(this->mat_W_2);
 
-            // xt::view(this->neuron_1_hist, i).assign(neuron_out_1.reshape({2}));
-            // xt::view(this->neuron_2_hist, i).assign(neuron_out_2.reshape({2}));
+            xt::view(this->neuron_1_hist, i).assign(neuron_out_1);
+            xt::view(this->neuron_2_hist, i).assign(neuron_out_2);
         }
+
         this->smoothed_W_1 = this->smooth(this->array_hist_W_1, k_points);
         this->smoothed_W_2 = this->smooth(this->array_hist_W_2, k_points);
     }
@@ -160,8 +161,8 @@ xt::xarray<double> SpikeDNNet::predict(
         xt::xarray<double> vec_u,
         double step)
 {
-    auto nt = vec_u.shape()[0]; // 1089
-    xt::xarray<double> vec_est = init_state * xt::ones<double>({nt, this->mat_dim}); // 2178 2
+    auto nt = vec_u.shape(0);
+    xt::xarray<double> vec_est = init_state * xt::ones<double>({nt, this->mat_dim});
 
     auto W1 = xt::view(this->smoothed_W_1, -1);
     auto W2 = xt::view(this->smoothed_W_2, -1);
@@ -175,8 +176,8 @@ xt::xarray<double> SpikeDNNet::predict(
 
         auto vec_est_next = xt::view(vec_est, i + 1);
         vec_est_next = cur_est + step * (
-            xt::linalg::dot(this->mat_A, cur_est) + 
-            xt::linalg::dot(W1, neuron_1_out) + 
+            xt::squeeze(xt::linalg::dot(this->mat_A, cur_est)) + 
+            xt::squeeze(xt::linalg::dot(W1, neuron_1_out)) + 
             xt::linalg::dot(
                 xt::linalg::dot(W2, neuron_2_out), 
                 cur_u
@@ -212,4 +213,45 @@ xt::xarray<double> SpikeDNNet::get_neurons_history(std::uint8_t idx) const
     }
 
     return xt::xarray<double>();
+}
+
+const xt::xarray<double>& SpikeDNNet::get_A() const
+{
+    return this->mat_A;
+}
+
+const xt::xarray<double>& SpikeDNNet::get_P() const
+{
+    return this->mat_P;
+}
+
+const xt::xarray<double>& SpikeDNNet::get_K1() const
+{
+    return this->mat_K_1;
+}
+
+const xt::xarray<double>& SpikeDNNet::get_K2() const
+{
+    return this->mat_K_2;
+}
+
+const xt::xarray<double>& SpikeDNNet::get_W10() const
+{
+    return this->init_mat_W_1;
+}
+
+const xt::xarray<double>& SpikeDNNet::get_W20() const
+{
+    return this->init_mat_W_2;
+}
+
+const std::string SpikeDNNet::get_afunc_descr(size_t idx) const
+{
+    if(idx == 0){
+        return this->afunc_1->whoami();
+    }else if(idx == 1){
+        return this->afunc_2->whoami();
+    }else{
+        return "";
+    }
 }
