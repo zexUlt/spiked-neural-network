@@ -2,7 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-time = time = np.linspace(0, 4394, 4394)[:3304] / 110
+plt.rcParams.update({
+        "text.usetex" : True,
+        "font.family" : "Helvetica"
+})
+plt.rcParams['text.latex.preamble'] = r'\usepackage[utf8]{inputenc}\usepackage[T2A]{fontenc}\usepackage[russian]{babel}'
+
+time = np.linspace(0, 4394, 4394)[:3304] / 110
 tr_target = np.load('plot_data/target.npy')
 tr_control = np.load('plot_data/control.npy')
 tr_est = np.load('plot_data/estimation.npy')
@@ -15,94 +21,153 @@ neuro1 = np.squeeze(np.load('plot_data/neuro1.npy'))
 neuro2 = np.load('plot_data/neuro2.npy')
 
 
-fig, axs = plt.subplots(4, 2, figsize=(16, 8))
+fig1, axs1 = plt.subplots(2, 2, figsize=(16, 8))
+fig2, axs2 = plt.subplots(2, 1, figsize=(16, 8))
+fig3, axs3 = plt.subplots(2, 1, figsize=(16, 8))
+fig4, axs4 = plt.subplots(2, 1, figsize=(16, 8))
 
-axs[0, 0].plot(time,
-        tr_control,
-        color='tab:blue',
+axs1[0, 0].plot(time,
+        tr_control[:, 1],
         lw='2')
 
-axs[1, 0].scatter(time,
+axs1[0, 0].plot(time,
+        tr_control[:, 2],
+        lw='2')
+
+axs1[1, 0].scatter(time,
         tr_target,
         linestyle='solid',
         color=(165/255, 172/255, 175/255),
         s=4.5,
         zorder=100)
 
-axs[1, 0].plot(time,
+axs1[1, 0].plot(time,
         tr_est,
         color='tab:blue',
         lw='2')
 
-axs[0, 1].plot(time,
+axs1[0, 1].plot(time,
         error,
         color='tab:blue',
         lw='2')
 
-axs[1, 1].scatter(time,
+axs1[1, 1].scatter(time,
         tr_target_2,
         linestyle='solid',
         color=(165/255, 172/255, 175/255),
         s=4.5,
         zorder=100)
 
-axs[1, 1].plot(time,
+axs1[1, 1].plot(time,
         tr_est_2,
         color='tab:blue',
         lw='2')
 
-axs[2, 0].plot(time[:-1],
+axs2[0].plot(time[:-1],
         np.abs(wdiff1[:, 0][:3303]),
         color=(165/255, 172/255, 175/255),
         lw='2')
 
-axs[2, 1].plot(time[:-1],
+axs2[1].plot(time[:-1],
         np.abs(wdiff2[:, 1][:3303]),
         color='tab:blue',
         lw='2')
 
-axs[3, 0].plot(time[:-1],
+axs3[0].plot(time[:-1],
         neuro1[:3303],
         # color='tab:blue',
         lw='2')
 
-axs[3, 1].plot(time[:-1],
+axs3[1].plot(time[:-1],
         neuro2[:3303, :, 0],
         # color='tab:orange',
         lw='2')
 
-axs[3, 1].plot(time[:-1],
+axs3[1].plot(time[:-1],
         neuro2[:3303, :, 1],
         # color='tab:orange',
         lw='2')
 
+axs4[0].scatter(time[:500],
+        tr_target[:500],
+        linestyle='solid',
+        color=(165/255, 172/255, 175/255),
+        s=4.5,
+        zorder=100)
 
-axs[3, 0].set_xlabel('Time (s)', fontsize=12)
-axs[3, 1].set_xlabel('Time (s)', fontsize=12)
+axs4[0].plot(time[:500],
+        tr_est[:500],
+        color='tab:blue',
+        lw='2')
 
-axs[0, 0].set_ylabel("Angle speed of head rotation (°)", fontsize=10)
-axs[1, 0].set_ylabel("Angle of eye rotation 1 (°)", fontsize=10)
-axs[1, 1].set_ylabel("Angle of eye rotation 2 (°)", fontsize=10)
-axs[0, 1].set_ylabel('Error (°)', fontsize=10)
-axs[2, 0].set_ylabel('Dynamics of changes in weights', fontsize=10)
-axs[3, 0].set_ylabel('Neuron output', fontsize=10)
+axs4[1].scatter(time[:500],
+        tr_target_2[:500],
+        linestyle='solid',
+        color=(165/255, 172/255, 175/255),
+        s=4.5,
+        zorder=100)
+
+axs4[1].plot(time[:500],
+        tr_est_2[:500],
+        color='tab:blue',
+        lw='2')
+
+axs4[0].plot(time[0], tr_est[0], 'o', color='tab:orange', label='_nolegend_')
+axs4[0].annotate(r"$\displaystyle \hat{\zeta}(0) = " + "{:.4f}".format(tr_est[0]) + "$", 
+                xycoords='data',
+                xy=(time[0], tr_est[0]),
+                xytext=(20, 15),
+                textcoords='offset points',
+                verticalalignment='bottom',
+                arrowprops=dict(arrowstyle='-'),
+                clip_on=True
+                )
+
+axs4[1].plot(time[0], tr_est_2[0], 'o', color='tab:orange', label='_nolegend_')
+axs4[1].annotate(r"$\displaystyle \hat{\zeta}(0) = " + "{:.4f}".format(tr_est_2[0]) + "$", 
+                xycoords='data',
+                xy=(time[0], tr_est_2[0]),
+                xytext=(40, -30),
+                textcoords='offset points',
+                verticalalignment='bottom',
+                arrowprops=dict(arrowstyle='-'),
+                clip_on=True
+                )
+
+axs1[1, 0].set_xlabel('Время (с)', fontsize=15)
+axs1[1, 1].set_xlabel('Время (с)', fontsize=15)
+
+axs2[1].set_xlabel('Время (с)', fontsize=15)
+
+axs3[1].set_xlabel('Время (с)', fontsize=15)
+
+axs4[1].set_xlabel('Время (с)', fontsize=15)
+
+axs1[0, 0].set_ylabel("Угловая скорость поворота головы (°/с)", fontsize=15)
+axs1[1, 0].set_ylabel("Угол поворота левого глаза (°)", fontsize=15)
+axs1[1, 1].set_ylabel("Угол поворота правого глаза (°)", fontsize=15)
+axs1[0, 1].set_ylabel('Ошибка (°)', fontsize=15)
+
+axs4[0].set_ylabel("Угол поворота левого глаза (°)", fontsize=15)
+axs4[1].set_ylabel("Угол поворота правого глаза (°)", fontsize=15)
+
+# axs2[0].set_title('Динамика изменения весов', fontsize=20)
+
+# axs3[0].set_title('Выход нейрона', fontsize=20)
 
 
-axs[1, 0].legend(['Identification', 'Experimental data'])
-axs[1, 1].legend(['Identification', 'Experimental data'])
-axs[2, 0].legend(['W_1'])
-axs[2, 1].legend(['W_2'])
-# axs[3, 0].legend(['Neuron 1', "Neuron 2"])
-# axs[3, 1].legend(['Neuron 1', "Neuron 2"])
+axs1[0, 0].legend(['Y', 'Z'])
+axs1[1, 0].legend(['Идентификация', 'Экспериментальные данные'])
+axs1[1, 1].legend(['Идентификация', 'Экспериментальные данные'])
 
-# axs[0, 0].text(-0.1, 1., 'A', transform=axs[0, 0].transAxes,
-#                 size=20, weight='bold')
-# axs[0, 1].text(-0.075, 1., 'B', transform=axs[0, 1].transAxes,
-#                 size=20, weight='bold')
-# axs[1, 1].text(-0.075, 1., 'D', transform=axs[1, 1].transAxes,
-#                 size=20, weight='bold')
-# axs[1, 0].text(-0.1, 1., 'C', transform=axs[1, 0].transAxes,
-#                 size=20, weight='bold')
+axs4[0].legend(['Идентификация', 'Экспериментальные данные'])
+axs4[1].legend(['Идентификация', 'Экспериментальные данные'])
+
+axs2[0].legend(['$\displaystyle W_1$'])
+axs2[1].legend(['$\displaystyle W_2$'])
 
 plt.tight_layout()
-plt.savefig('articl_plot_{}.png'.format(0))
+fig1.savefig("articl_plot_1.png")
+fig2.savefig("articl_plot_2.png")
+fig3.savefig("articl_plot_3.png")
+fig4.savefig("experiment_begin.png")
