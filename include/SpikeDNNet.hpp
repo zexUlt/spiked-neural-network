@@ -77,20 +77,20 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, const SpikeDNNet& dnn)
     {
-        out << "SDNN model.\n";
+        out << "\tSDNN model.\n";
         out << "\n=================================\n";
-        out << "Configuration: \n";
-        out << "A =\n" << dnn.get_A() << '\n';
-        out << "P =\n" << dnn.get_P() << '\n';
-        out << "W10 =\n" << dnn.get_W10() << '\n';
-        out << "W20 =\n" << dnn.get_W20() << '\n';
-        out << "K1 =\n" << dnn.get_K1() << '\n';
-        out << "K2 =\n" << dnn.get_K2() << '\n';
+        out << "\tConfiguration: \n";
+        out << "\t\tA =\n" << dnn.get_A() << '\n';
+        out << "\t\tP =\n" << dnn.get_P() << '\n';
+        out << "\t\tW10 =\n" << dnn.get_W10() << '\n';
+        out << "\t\tW20 =\n" << dnn.get_W20() << '\n';
+        out << "\t\tK1 =\n" << dnn.get_K1() << '\n';
+        out << "\t\tK2 =\n" << dnn.get_K2() << '\n';
         out << "\n=================================\n\n";
-        out << "First activation component: \n" << dnn.get_afunc_descr(0) << '\n';
+        out << "\tFirst activation component: \n" << dnn.get_afunc_descr(0) << '\n';
         out << "\n=================================\n\n";
-        out << "Second activation component: \n" << dnn.get_afunc_descr(1) << '\n';
-        out << "\n=================================\n\n\n";
+        out << "\tSecond activation component: \n" << dnn.get_afunc_descr(1) << '\n';
+        out << "\t\t\n=================================\n\n\n";
 
         return out;
     }
