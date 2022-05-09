@@ -144,8 +144,8 @@ xt::xarray<double> SpikeDNNet::fit(
             xt::view(this->array_hist_W_1, i).assign(this->mat_W_1);
             xt::view(this->array_hist_W_2, i).assign(this->mat_W_2);
 
-            xt::view(this->neuron_1_hist, i).assign(neuron_out_1);
-            xt::view(this->neuron_2_hist, i).assign(neuron_out_2);
+            // xt::view(this->neuron_1_hist, i).assign(neuron_out_1);
+            // xt::view(this->neuron_2_hist, i).assign(neuron_out_2);
         }
 
         this->smoothed_W_1 = this->smooth(this->array_hist_W_1, k_points);
