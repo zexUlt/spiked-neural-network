@@ -93,12 +93,12 @@ const std::string IzhikevichActivation::whoami() const
 {
     std::string out;
 
-    out += "Izhikevich neuron pack\n Shape: {";
+    out += "\tIzhikevich neuron pack\n\tShape: {";
     for(auto x : this->shape){
         out += std::to_string(x) + ", ";
     }
 
-    out += "}\nNeuron type: ";
+    out += "}\n\tNeuron type: ";
     
     switch(this->type){
         case NeuronType::Chattering:
@@ -131,15 +131,15 @@ const std::string IzhikevichActivation::whoami() const
             out += "Custom";
     }
 
-    out += "\nParameters:\n";
-    out += "Izhikevich border = " + std::to_string(this->izh_border) + "\n";
-    out += "a = " + std::to_string(this->param_a) + "\n";
-    out += "b = " + std::to_string(this->param_b) + "\n";
-    out += "c = " + std::to_string(this->param_c) + "\n";
-    out += "d = " + std::to_string(this->param_d) + "\n";
-    out += "e = " + std::to_string(this->param_e) + "\n";
-    out += "Input scale = " + std::to_string(this->input_scale) + "\n";
-    out += "Output scale = " + std::to_string(this->output_scale) + "\n";
+    out += "\n\tParameters:\n";
+    out += "\t\tIzhikevich border = " + std::to_string(this->izh_border) + "\n";
+    out += "\t\ta = " + std::to_string(this->param_a) + "\n";
+    out += "\t\tb = " + std::to_string(this->param_b) + "\n";
+    out += "\t\tc = " + std::to_string(this->param_c) + "\n";
+    out += "\t\td = " + std::to_string(this->param_d) + "\n";
+    out += "\t\te = " + std::to_string(this->param_e) + "\n";
+    out += "\t\tInput scale = " + std::to_string(this->input_scale) + "\n";
+    out += "\t\tOutput scale = " + std::to_string(this->output_scale) + "\n";
     
     return out;
 }
