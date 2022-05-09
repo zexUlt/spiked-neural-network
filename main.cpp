@@ -35,8 +35,8 @@ int main(int argc, char** argv)
 
     using Izhi = CxxSDNN::IzhikevichActivation;
 
-    auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(70, 1/60., {tr_target.shape(1), 1}, Izhi::NeuronType::RegularSpiking);
-    auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(70, 1/60., {tr_target.shape(1), tr_control.shape(1)}, Izhi::NeuronType::Resonator);
+    auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(50, 1/60., {tr_target.shape(1), 1}, Izhi::NeuronType::RegularSpiking);
+    auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(50, 1/60., {tr_target.shape(1), tr_control.shape(1)}, Izhi::NeuronType::RegularSpiking);
     // auto sigm_act_1 = std::make_unique<CxxSDNN::SigmoidActivation>();
     // auto sigm_act_2 = std::make_unique<CxxSDNN::SigmoidActivation>();
 
@@ -44,8 +44,8 @@ int main(int argc, char** argv)
     auto W_2 = 1. * xt::ones<double>({dim, dim}); // 1.
     auto A   = 162. * xt::diag(xt::xarray<double>{-1., -1., -1., -1.}); // 162.
     auto P   = 3337. * xt::diag(xt::xarray<double>{1., 1., 1., 1.}); // 3337.
-    auto K_1 = .6 * xt::diag(xt::xarray<double>{1., 1., 1., 1.}); // 1.
-    auto K_2 = .1 * xt::diag(xt::xarray<double>{1., 1., 1., 1.});  // 0.1
+    auto K_1 = .5 * xt::diag(xt::xarray<double>{1., 1., 1., 1.}); // 1.
+    auto K_2 = 1. * xt::diag(xt::xarray<double>{1., 1., 1., 1.});  // 0.1
 
     CxxSDNN::SpikeDNNet dnn_izh(
         std::move(izh_act_1), std::move(izh_act_2), // Activation functions
@@ -72,17 +72,17 @@ int main(int argc, char** argv)
         }
     };
 
-    // std::cout << "Izhikevich timings: " << UtilityFunctionLibrary::timeit([&dnn_izh, &tr_target, &tr_control, &n_epochs, &k_points](){ 
-    //     dnn_izh.fit(tr_target, tr_control, 0.01, n_epochs, k_points); }, 100u) << '\n';
+    std::cout << "Izhikevich timings: " << UtilityFunctionLibrary::timeit([&dnn_izh, &tr_target, &tr_control, &n_epochs, &k_points](){ 
+        dnn_izh.fit(tr_target, tr_control, 0.01, n_epochs, k_points); }, 100u) << '\n';
     
     // std::cout << "Sigmoidal timings: " << UtilityFunctionLibrary::timeit([&dnn_sigm, &tr_target, &tr_control, &n_epochs, &k_points](){ 
     //     dnn_sigm.fit(tr_target, tr_control, 0.01, n_epochs, k_points); }, 100u) << '\n';
 
-    auto res = UtilityFunctionLibrary::dnn_validate(dnn_izh, folds, n_epochs, k_points);
+    // auto res = UtilityFunctionLibrary::dnn_validate(dnn_izh, folds, n_epochs, k_points);
 
-    std::cout << res;
+    // std::cout << res;
 
-    UtilityFunctionLibrary::dumpData(tr_target, tr_control, res);
+    // UtilityFunctionLibrary::dumpData(tr_target, tr_control, res);
 
     return 0;
 }
