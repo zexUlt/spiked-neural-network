@@ -83,16 +83,16 @@ xt::xarray<double> SpikeDNNet::fit(
         std::uint32_t k_points)
 {
     auto nt = vec_u.shape(0);
-    xt::xarray<double> vec_est = 0.1 * xt::ones<double>({nt, this->mat_dim});
+    xt::xarray<double> vec_est = .01 * xt::ones<double>({nt, this->mat_dim});
 
     this->mat_W_1 = this->init_mat_W_1;
     this->mat_W_2 = this->init_mat_W_2;
 
-    this->array_hist_W_1 = xt::ones<double>({nt, this->mat_dim, this->mat_dim});
-    this->array_hist_W_2 = xt::ones<double>({nt, this->mat_dim, this->mat_dim});
+    this->array_hist_W_1 = xt::ones<double>({nt, this->mat_dim, 2u*this->mat_dim});
+    this->array_hist_W_2 = xt::ones<double>({nt, this->mat_dim, 2u*this->mat_dim});
 
-    this->neuron_1_hist = xt::ones<double>({nt, this->mat_dim, size_t(1)});
-    this->neuron_2_hist = xt::ones<double>({nt, this->mat_dim, vec_u.shape(1)});
+    this->neuron_1_hist = xt::ones<double>({nt, 2u*this->mat_dim, size_t(1)});
+    this->neuron_2_hist = xt::ones<double>({nt, 2u*this->mat_dim, vec_u.shape(1)});
 
     for(int e = 0; e < n_epochs; ++e){
         vec_x = xt::eval(xt::flip(vec_x, 0));
@@ -114,9 +114,9 @@ xt::xarray<double> SpikeDNNet::fit(
             auto vec_est_next = xt::view(vec_est, i + 1);
             vec_est_next = xt::eval(current_vec_est + step * (
                 xt::squeeze(xt::linalg::dot(this->mat_A, current_vec_est)) +
-                xt::squeeze(xt::linalg::dot(this->mat_W_1, neuron_out_1))) +
+                xt::squeeze(xt::linalg::dot(this->mat_W_1, neuron_out_1))) + // (4x8)x(8x1) -> (4x1)
                 xt::linalg::dot(
-                    xt::linalg::dot(this->mat_W_2, neuron_out_2), // (4x4)x(4x2)
+                    xt::linalg::dot(this->mat_W_2, neuron_out_2), // (4x8)x(8x3)
                     current_vec_u)
             );
 
@@ -144,8 +144,8 @@ xt::xarray<double> SpikeDNNet::fit(
             xt::view(this->array_hist_W_1, i).assign(this->mat_W_1);
             xt::view(this->array_hist_W_2, i).assign(this->mat_W_2);
 
-            // xt::view(this->neuron_1_hist, i).assign(neuron_out_1);
-            // xt::view(this->neuron_2_hist, i).assign(neuron_out_2);
+            xt::view(this->neuron_1_hist, i).assign(neuron_out_1);
+            xt::view(this->neuron_2_hist, i).assign(neuron_out_2);
         }
 
         this->smoothed_W_1 = this->smooth(this->array_hist_W_1, k_points);
