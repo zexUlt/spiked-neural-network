@@ -2,6 +2,7 @@
 
 #include "xtensor-blas/xlinalg.hpp"
 #include "xtensor/xmasked_view.hpp"
+#include "xtensor/xview.hpp"
 #include "debug_header.hpp"
 
 using CxxSDNN::IzhikevichActivation;
@@ -57,8 +58,17 @@ IzhikevichActivation::IzhikevichActivation() :
 
 xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, double step = .01)
 {
-    auto vec_scale = xt::ones<double>(this->shape); 
-    auto cur_input = xt::broadcast(input.reshape({-1, 1}) * this->input_scale, this->shape);
+    xt::xarray<double> vec_scale = xt::ones<double>(this->shape); 
+    xt::xarray<double> cur_input = xt::broadcast(input.reshape({this->shape[0] / 2, 1}) * this->input_scale, {this->shape[0] / 2, this->shape[1]});
+
+    // Duplicate input to negate the second half
+    cur_input = xt::vstack(xt::xtuple(cur_input, cur_input));
+    
+    // Enable the analog of python's a[start:] slice
+    using namespace xt::placeholders;
+    // Negate second half of input to take into account negative inputs
+    auto half_of_input = xt::view(cur_input, xt::range(this->shape[0] / 2, _));
+    half_of_input *= -1.;
 
     this->state += step / 2 * ( 
         .04 * this->state * this->state + 5. * this->state + 140. - this->control + cur_input
@@ -73,9 +83,9 @@ xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, do
             this->param_b * this->state - this->control
         )
     );
-
-    auto beyond_border = this->state > this->izh_border;
-    auto state_beyond = xt::masked_view(this->state, beyond_border);
+    
+    auto beyond_border    = this->state > this->izh_border;
+    auto state_beyond     = xt::masked_view(this->state, beyond_border);
     auto control_by_state = xt::masked_view(this->control, beyond_border);
 
     state_beyond = vec_scale * this->param_c;
@@ -117,8 +127,12 @@ const std::string IzhikevichActivation::whoami() const
             out += "Low Threshold Spiking";
             break;
 
-        case NeuronType::ThalamoCortical:
-            out += "Thalamo Cortical";
+        case NeuronType::ThalamoCortical63:
+            out += "Thalamo Cortical with -63 mV initial";
+            break;
+
+        case NeuronType::ThalamoCortical87:
+            out += "Thalamo Cortical with -87 mV initial";
             break;
 
         case NeuronType::IntrinsicallyBursting:
