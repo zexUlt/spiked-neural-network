@@ -15,7 +15,8 @@ public:
         Chattering,
         FastSpiking,
         LowThresholdSpiking,
-        ThalamoCortical,
+        ThalamoCortical63,
+        ThalamoCortical87,
         Resonator,
         Custom
     };
