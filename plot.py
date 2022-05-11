@@ -22,8 +22,8 @@ neuro2 = np.load('plot_data/neuro2.npy')
 
 
 fig1, axs1 = plt.subplots(2, 2, figsize=(16, 8))
-fig2, axs2 = plt.subplots(2, 1, figsize=(16, 8))
-fig3, axs3 = plt.subplots(2, 1, figsize=(16, 8))
+fig2, axs2 = plt.subplots(2, 2, figsize=(16, 8))
+# fig3, axs3 = plt.subplots(2, 2, figsize=(16, 8))
 fig4, axs4 = plt.subplots(2, 1, figsize=(16, 8))
 
 axs1[0, 0].plot(time,
@@ -63,27 +63,27 @@ axs1[1, 1].plot(time,
         color='tab:blue',
         lw='2')
 
-axs2[0].plot(time[:-1],
+axs2[0, 0].plot(time[:-1],
         np.abs(wdiff1[:, 0][:3303]),
         color=(165/255, 172/255, 175/255),
         lw='2')
 
-axs2[1].plot(time[:-1],
+axs2[0, 1].plot(time[:-1],
         np.abs(wdiff2[:, 1][:3303]),
         color='tab:blue',
         lw='2')
 
-axs3[0].plot(time[:-1],
+axs2[1, 0].plot(time[:-1],
         neuro1[:3303],
         # color='tab:blue',
         lw='2')
 
-axs3[1].plot(time[:-1],
+axs2[1, 1].plot(time[:-1],
         neuro2[:3303, :, 0],
         # color='tab:orange',
         lw='2')
 
-axs3[1].plot(time[:-1],
+axs2[1, 1].plot(time[:-1],
         neuro2[:3303, :, 1],
         # color='tab:orange',
         lw='2')
@@ -116,7 +116,7 @@ axs4[0].plot(time[0], tr_est[0], 'o', color='tab:orange', label='_nolegend_')
 axs4[0].annotate(r"$\displaystyle \hat{\zeta}(0) = " + "{:.4f}".format(tr_est[0]) + "$", 
                 xycoords='data',
                 xy=(time[0], tr_est[0]),
-                xytext=(20, 15),
+                xytext=(-40, 40),
                 textcoords='offset points',
                 verticalalignment='bottom',
                 arrowprops=dict(arrowstyle='-'),
@@ -127,7 +127,7 @@ axs4[1].plot(time[0], tr_est_2[0], 'o', color='tab:orange', label='_nolegend_')
 axs4[1].annotate(r"$\displaystyle \hat{\zeta}(0) = " + "{:.4f}".format(tr_est_2[0]) + "$", 
                 xycoords='data',
                 xy=(time[0], tr_est_2[0]),
-                xytext=(40, -30),
+                xytext=(-40, 40),
                 textcoords='offset points',
                 verticalalignment='bottom',
                 arrowprops=dict(arrowstyle='-'),
@@ -137,9 +137,8 @@ axs4[1].annotate(r"$\displaystyle \hat{\zeta}(0) = " + "{:.4f}".format(tr_est_2[
 axs1[1, 0].set_xlabel('Время (с)', fontsize=15)
 axs1[1, 1].set_xlabel('Время (с)', fontsize=15)
 
-axs2[1].set_xlabel('Время (с)', fontsize=15)
-
-axs3[1].set_xlabel('Время (с)', fontsize=15)
+axs2[1, 0].set_xlabel('Время (с)', fontsize=15)
+axs2[1, 1].set_xlabel('Время (с)', fontsize=15)
 
 axs4[1].set_xlabel('Время (с)', fontsize=15)
 
@@ -147,6 +146,9 @@ axs1[0, 0].set_ylabel("Угловая скорость поворота голо
 axs1[1, 0].set_ylabel("Угол поворота левого глаза (°)", fontsize=15)
 axs1[1, 1].set_ylabel("Угол поворота правого глаза (°)", fontsize=15)
 axs1[0, 1].set_ylabel('Ошибка (°)', fontsize=15)
+
+axs2[1, 0].set_ylabel(r'Выход $\displaystyle \phi_1$', fontsize=15)
+axs2[1, 1].set_ylabel(r'Выход $\displaystyle \phi_2$', fontsize=15)
 
 axs4[0].set_ylabel("Угол поворота левого глаза (°)", fontsize=15)
 axs4[1].set_ylabel("Угол поворота правого глаза (°)", fontsize=15)
@@ -163,11 +165,12 @@ axs1[1, 1].legend(['Идентификация', 'Экспериментальн
 axs4[0].legend(['Идентификация', 'Экспериментальные данные'])
 axs4[1].legend(['Идентификация', 'Экспериментальные данные'])
 
-axs2[0].legend(['$\displaystyle W_1$'])
-axs2[1].legend(['$\displaystyle W_2$'])
+axs2[0, 0].legend([r'$\displaystyle W_1$'])
+axs2[0, 1].legend([r'$\displaystyle W_2$'])
+
 
 plt.tight_layout()
 fig1.savefig("articl_plot_1.png")
 fig2.savefig("articl_plot_2.png")
-fig3.savefig("articl_plot_3.png")
+# fig3.savefig("articl_plot_3.png")
 fig4.savefig("experiment_begin.png")
