@@ -35,8 +35,8 @@ public:
 
         friend std::ostream& operator<<(std::ostream& out, UtilityFunctionLibrary::ValidationResults res)
         {
-            out << "MSE: [Train: " << res.mse_res.first << ", Test:" << res.mse_res.second << "]\n";
-            out << "MAE: [Train: " << res.mae_res.first << ", Test:" << res.mae_res.second << "]\n";
+            out << "MSE: [Train: " << res.mse_res.first << ", Test: " << res.mse_res.second << "]\n";
+            out << "MAE: [Train: " << res.mae_res.first << ", Test: " << res.mae_res.second << "]\n";
 
             return out;
         }
@@ -164,9 +164,13 @@ public:
                 out = std::make_unique<Izhi>(input_scale, output_scale, 30, 0.02, 0.25, -65, 2, -65, shape);
                 out->set_type(Izhi::NeuronType::LowThresholdSpiking);
                 break;
-            case Izhi::NeuronType::ThalamoCortical:
-                out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.25, -65, 0.05, -65, shape);
-                out->set_type(Izhi::NeuronType::ThalamoCortical);
+            case Izhi::NeuronType::ThalamoCortical63:
+                out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.25, -65, 0.05, -63, shape);
+                out->set_type(Izhi::NeuronType::ThalamoCortical63);
+                break;
+            case Izhi::NeuronType::ThalamoCortical87:
+                out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.25, -65, 0.05, -87, shape);
+                out->set_type(Izhi::NeuronType::ThalamoCortical87);
                 break;
             case Izhi::NeuronType::Resonator:
                 out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.1, 0.26, -65, 2, -65, shape);
