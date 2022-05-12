@@ -2,14 +2,13 @@
 
 #include <xtensor/xarray.hpp>
 
-namespace CxxSDNN{
-
-class AbstractActivation
+namespace CxxSDNN
 {
-public:
+  class AbstractActivation {
+  public:
     virtual xt::xarray<double> operator()(xt::xarray<double> input, double step = 0) = 0;
-    virtual const std::string whoami() const = 0;
-    virtual ~AbstractActivation() {};
-};
+    virtual const std::string whoami() const                                         = 0;
+    virtual ~AbstractActivation(){};
+  };
 
-};
+}; // namespace CxxSDNN

@@ -2,59 +2,43 @@
 
 #include "AbstractActivation.hpp"
 
-
-namespace CxxSDNN{
-
-class IzhikevichActivation : public AbstractActivation
+namespace CxxSDNN
 {
-public:
+  class IzhikevichActivation : public AbstractActivation {
+  public:
     enum class NeuronType
     {
-        RegularSpiking,
-        IntrinsicallyBursting,
-        Chattering,
-        FastSpiking,
-        LowThresholdSpiking,
-        ThalamoCortical63,
-        ThalamoCortical87,
-        Resonator,
-        Custom
+      RegularSpiking,
+      IntrinsicallyBursting,
+      Chattering,
+      FastSpiking,
+      LowThresholdSpiking,
+      ThalamoCortical63,
+      ThalamoCortical87,
+      Resonator,
+      Custom
     };
-    
-    explicit IzhikevichActivation(
-        double i_scale, double o_scale,
-        double _izh_border, double a, 
-        double b, double c,
-        double d, double e, std::vector<size_t> _shape
-    );
 
     explicit IzhikevichActivation(
-        double i_scale, double o_scale,
-        double _izh_border, double a, 
-        double b, double c,
-        double d, double e
-    );
+      double i_scale, double o_scale, double _izh_border, double a, double b, double c, double d, double e,
+      std::vector<size_t> _shape);
 
     explicit IzhikevichActivation(
-        double i_scale, double o_scale
-    );
+      double i_scale, double o_scale, double _izh_border, double a, double b, double c, double d, double e);
 
-    explicit IzhikevichActivation(
-        double _izh_border
-    );
+    explicit IzhikevichActivation(double i_scale, double o_scale);
 
-    explicit IzhikevichActivation(
-        std::vector<size_t> _shape
-    );
+    explicit IzhikevichActivation(double _izh_border);
+
+    explicit IzhikevichActivation(std::vector<size_t> _shape);
 
     explicit IzhikevichActivation();
-    
 
     xt::xarray<double> operator()(xt::xarray<double> input, double step) override;
     const std::string whoami() const override;
     void set_type(NeuronType new_type);
 
-private:
+  private:
     double input_scale;
     double output_scale;
     double izh_border;
@@ -67,6 +51,6 @@ private:
     xt::xarray<double> control;
     xt::xarray<double> state;
     NeuronType type = NeuronType::Custom;
-};
+  };
 
-};
+}; // namespace CxxSDNN

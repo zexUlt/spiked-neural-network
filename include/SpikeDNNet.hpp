@@ -5,13 +5,12 @@
 
 #include <memory>
 
-namespace CxxSDNN{
-
-class AbstractActivation;
-
-class SpikeDNNet
+namespace CxxSDNN
 {
-private:
+  class AbstractActivation;
+
+  class SpikeDNNet {
+  private:
     size_t mat_dim;
     xt::xarray<double> mat_A;
     xt::xarray<double> mat_P;
@@ -30,18 +29,14 @@ private:
     std::unique_ptr<AbstractActivation> afunc_1;
     std::unique_ptr<AbstractActivation> afunc_2;
 
-public:
+  public:
     explicit SpikeDNNet(
-        std::unique_ptr<AbstractActivation> act_func_1,
-        std::unique_ptr<AbstractActivation> act_func_2,
-        xt::xarray<double> mat_W_1,
-        xt::xarray<double> mat_W_2,
-        size_t dim = 2,
-        xt::xarray<double> mat_A = 20. * xt::diag(xt::xarray<double>({-1., -2.})),
-        xt::xarray<double> mat_P = 1575.9 * xt::diag(xt::xarray<double>({60., 40.})),
-        xt::xarray<double> mat_K_1 = .15 * xt::diag(xt::xarray<double>({10., 1.})),
-        xt::xarray<double> mat_K_2 = .15 * xt::diag(xt::xarray<double>({1., 1.}))
-    );
+      std::unique_ptr<AbstractActivation> act_func_1, std::unique_ptr<AbstractActivation> act_func_2,
+      xt::xarray<double> mat_W_1, xt::xarray<double> mat_W_2, size_t dim = 2,
+      xt::xarray<double> mat_A   = 20. * xt::diag(xt::xarray<double>({-1., -2.})),
+      xt::xarray<double> mat_P   = 1575.9 * xt::diag(xt::xarray<double>({60., 40.})),
+      xt::xarray<double> mat_K_1 = .15 * xt::diag(xt::xarray<double>({10., 1.})),
+      xt::xarray<double> mat_K_2 = .15 * xt::diag(xt::xarray<double>({1., 1.})));
 
     SpikeDNNet(const SpikeDNNet& other) noexcept;
 
@@ -52,16 +47,10 @@ public:
     xt::xarray<double> smooth(xt::xarray<double> x, std::uint32_t w = 2);
 
     xt::xarray<double> fit(
-        xt::xarray<double> vec_x,
-        xt::xarray<double> vec_u,
-        double step = .01,
-        std::uint32_t n_epochs = 3,
-        std::uint32_t k_points = 2);
+      xt::xarray<double> vec_x, xt::xarray<double> vec_u, double step = .01, std::uint32_t n_epochs = 3,
+      std::uint32_t k_points = 2);
 
-    xt::xarray<double> predict(
-        xt::xarray<double> init_state,
-        xt::xarray<double> vec_u,
-        double step = .01);
+    xt::xarray<double> predict(xt::xarray<double> init_state, xt::xarray<double> vec_u, double step = .01);
 
     xt::xarray<double> get_weights(std::uint8_t idx) const;
 
@@ -77,23 +66,22 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, const SpikeDNNet& dnn)
     {
-        out << "\tSDNN model.\n";
-        out << "\n=================================\n";
-        out << "\tConfiguration: \n";
-        out << "\t\tA =\n" << dnn.get_A() << '\n';
-        out << "\t\tP =\n" << dnn.get_P() << '\n';
-        out << "\t\tW10 =\n" << dnn.get_W10() << '\n';
-        out << "\t\tW20 =\n" << dnn.get_W20() << '\n';
-        out << "\t\tK1 =\n" << dnn.get_K1() << '\n';
-        out << "\t\tK2 =\n" << dnn.get_K2() << '\n';
-        out << "\n=================================\n\n";
-        out << "\tFirst activation component: \n" << dnn.get_afunc_descr(0) << '\n';
-        out << "\n=================================\n\n";
-        out << "\tSecond activation component: \n" << dnn.get_afunc_descr(1) << '\n';
-        out << "\t\t\n=================================\n\n\n";
+      out << "\tSDNN model.\n";
+      out << "\n=================================\n";
+      out << "\tConfiguration: \n";
+      out << "\t\tA =\n" << dnn.get_A() << '\n';
+      out << "\t\tP =\n" << dnn.get_P() << '\n';
+      out << "\t\tW10 =\n" << dnn.get_W10() << '\n';
+      out << "\t\tW20 =\n" << dnn.get_W20() << '\n';
+      out << "\t\tK1 =\n" << dnn.get_K1() << '\n';
+      out << "\t\tK2 =\n" << dnn.get_K2() << '\n';
+      out << "\n=================================\n\n";
+      out << "\tFirst activation component: \n" << dnn.get_afunc_descr(0) << '\n';
+      out << "\n=================================\n\n";
+      out << "\tSecond activation component: \n" << dnn.get_afunc_descr(1) << '\n';
+      out << "\t\t\n=================================\n\n\n";
 
-        return out;
+      return out;
     }
-};
-};
-
+  };
+}; // namespace CxxSDNN
