@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 
     using Izhi = CxxSDNN::IzhikevichActivation;
 
-    auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(50, 1/60., {2*dim, 1}, Izhi::NeuronType::RegularSpiking);
+    auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(50, 1/60., {2*dim, 1}, Izhi::NeuronType::Resonator);
     auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(55, 1/60., {2*dim, tr_control.shape(1)}, Izhi::NeuronType::ThalamoCortical63);
     // auto sigm_act_1 = std::make_unique<CxxSDNN::SigmoidActivation>();
     // auto sigm_act_2 = std::make_unique<CxxSDNN::SigmoidActivation>();
