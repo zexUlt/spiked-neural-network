@@ -65,13 +65,13 @@ public:
 
     std::cout << dnn;
 
-    auto tr_target  = folds["tr"].first;
+    auto tr_target  = folds["tr"].first / 10.;
     auto tr_control = folds["tr"].second;
 
     auto vl_target  = folds["vl"].first;
     auto vl_control = folds["vl"].second;
 
-    auto target_est = dnn.fit(tr_target, tr_control, 0.01, n_epochs, k_points);
+    auto target_est = dnn.fit(tr_target, tr_control, 0.0001, n_epochs, k_points);
     auto vl_pred    = dnn.predict(xt::view(tr_target, -1, 0), vl_control);
 
     xt::xarray<double> tr_col     = xt::col(tr_target, 0);
@@ -117,8 +117,8 @@ public:
   static void dumpData(xt::xarray<double> tr_target, xt::xarray<double> tr_control, ValidationResults data)
   {
     auto error  = xt::abs(xt::col(tr_target, 0) - xt::col(data.tr_est[0], 0));
-    auto wdiff1 = xt::diff(xt::view(data.W_1, xt::all(), xt::all(), 0), 1, 0);
-    auto wdiff2 = xt::diff(xt::view(data.W_2, xt::all(), xt::all(), 0), 1, 0);
+    auto wdiff1 = xt::view(data.W_1, xt::all(), xt::all(), 0);
+    auto wdiff2 = xt::view(data.W_2, xt::all(), xt::all(), 0);
 
     xt::dump_npy("../plot_data/error.npy", xt::degrees(error));
     xt::dump_npy("../plot_data/control.npy", xt::degrees(tr_control));
@@ -139,15 +139,15 @@ public:
 
     switch(type) {
     case Izhi::NeuronType::RegularSpiking :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.2, -65, 8, -65, shape);
+      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 2., -65, 8, -65, shape);
       out->set_type(Izhi::NeuronType::RegularSpiking);
       break;
     case Izhi::NeuronType::IntrinsicallyBursting :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.2, -55, 4, -65, shape);
+      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 2., -55, 4, -65, shape);
       out->set_type(Izhi::NeuronType::IntrinsicallyBursting);
       break;
     case Izhi::NeuronType::Chattering :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.2, -50, 2, -65, shape);
+      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 2., -50, 2, -65, shape);
       out->set_type(Izhi::NeuronType::Chattering);
       break;
     case Izhi::NeuronType::FastSpiking :
@@ -159,7 +159,7 @@ public:
       out->set_type(Izhi::NeuronType::LowThresholdSpiking);
       break;
     case Izhi::NeuronType::ThalamoCortical63 :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.25, -65, 0.05, -63, shape);
+      out = std::make_unique<Izhi>(input_scale, output_scale, 40, 0.02, 0.25, -65, 0.05, -63, shape);
       out->set_type(Izhi::NeuronType::ThalamoCortical63);
       break;
     case Izhi::NeuronType::ThalamoCortical87 :
@@ -167,7 +167,7 @@ public:
       out->set_type(Izhi::NeuronType::ThalamoCortical87);
       break;
     case Izhi::NeuronType::Resonator :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.1, 0.26, -65, 2, -65, shape);
+      out = std::make_unique<Izhi>(input_scale, output_scale, 30, 0.1, 0.26, -65, 2, -65, shape);
       out->set_type(Izhi::NeuronType::Resonator);
       break;
     }
