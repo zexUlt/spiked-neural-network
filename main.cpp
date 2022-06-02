@@ -29,24 +29,24 @@ int main(int argc, char** argv)
 
     const std::uint32_t width    = 4394u;
     const std::int32_t split     = 3305;
-    const std::uint32_t n_epochs = 2u;
+    const std::uint32_t n_epochs = 4u;
     const std::uint32_t k_points = 3u;
 
     std::uint32_t dim            = tr_target.shape(1);
 
     using Izhi = CxxSDNN::IzhikevichActivation;
 
-    auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(50, 1/60., {2*dim, 1}, Izhi::NeuronType::Resonator);
-    auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(55, 1/60., {2*dim, tr_control.shape(1)}, Izhi::NeuronType::ThalamoCortical63);
+    auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(50, 1/40., {2*dim, 1}, Izhi::NeuronType::Resonator);
+    auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(55, 1/40., {2*dim, tr_control.shape(1)}, Izhi::NeuronType::ThalamoCortical63);
     // auto sigm_act_1 = std::make_unique<CxxSDNN::SigmoidActivation>();
     // auto sigm_act_2 = std::make_unique<CxxSDNN::SigmoidActivation>();
 
-    auto W_1 = 1. * xt::ones<double>({dim, 2u*dim}); // 1. 4х8
-    auto W_2 = 1. * xt::ones<double>({dim, 2u*dim}); // 1.
+    auto W_1 = 100. * xt::ones<double>({dim, 2u*dim}); // 1. 4х8
+    auto W_2 = 100. * xt::ones<double>({dim, 2u*dim}); // 1.
     auto A   = 162. * xt::diag(xt::xarray<double>{-1., -1., -1., -1.}); // 162.
-    auto P   = 3337. * xt::diag(xt::xarray<double>{1., 1., 1., 1.}); // 3337.
+    auto P   = 5000. * xt::diag(xt::xarray<double>{1., 1., 1., 1.}); // 3337.
     auto K_1 = .1 * xt::diag(xt::xarray<double>{1., 1., 1., 1.}); // 1.
-    auto K_2 = 1. * xt::diag(xt::xarray<double>{1., 1., 1., 1.});  // 0.1
+    auto K_2 = 100. * xt::diag(xt::xarray<double>{1., 1., 1., 1.});  // 0.1
 
     CxxSDNN::SpikeDNNet dnn_izh(
         std::move(izh_act_1), std::move(izh_act_2), // Activation functions
