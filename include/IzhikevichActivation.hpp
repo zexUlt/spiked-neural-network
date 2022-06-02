@@ -35,6 +35,7 @@ namespace CxxSDNN
     explicit IzhikevichActivation();
 
     xt::xarray<double> operator()(xt::xarray<double> input, double step) override;
+    xt::xarray<double> operator()(xt::xarray<double> input, double step) const override;
     const std::string whoami() const override;
     void set_type(NeuronType new_type);
 
