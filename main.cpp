@@ -8,13 +8,11 @@
 
 #include <istream>
 #include <fstream>
+#include <unordered_map>
+#include <string>
 
 #include "debug_header.hpp"
 
-/**
- * TODO:
- * See what's the problem with sigmoidal function
- */
 
 int main(int argc, char** argv)
 {   
@@ -32,42 +30,29 @@ int main(int argc, char** argv)
     xt::xarray<double> tr_control      = xt::diff(xt::load_npy<double>("../train_data/tr_control.npy"), 1, 0) / 120.;
     xt::xarray<double> vl_control      = xt::diff(xt::load_npy<double>("../train_data/vl_control.npy"), 1, 0) / 120.;
 
-    const std::uint32_t width    = 4394u;
-    const std::int32_t split     = 3305;
+    // const std::uint32_t width    = 4394u;
+    // const std::int32_t split     = 3305;
     const std::uint32_t n_epochs = 6u;
     const std::uint32_t k_points = 3u;
 
     std::uint32_t dim            = tr_target.shape(1);
 
-    using Izhi = CxxSDNN::IzhikevichActivation;
+    std::unordered_map<std::string, xt::xarray<double>> model_params{
+        {"W_1", -.1 * xt::ones<double>({dim, dim})},
+        {"W_2", -.1 * xt::ones<double>({dim, dim})},
+        {"A", 160. * xt::diag(xt::xarray<double>{-1., -1., -1., -1.})},
+        {"P", 50. * xt::diag(xt::xarray<double>{1., 1., 1., 1.})},
+        {"K_1", 3000. * xt::diag(xt::xarray<double>{1., 1., 1., 1.})},
+        {"K_2", .001 * xt::diag(xt::xarray<double>{1., 1., 1., 1.})}        
+    };
 
     // auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(50, 1/40., {2*dim, 1}, Izhi::NeuronType::Resonator);
     // auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(55, 1/40., {2*dim, tr_control.shape(1)}, Izhi::NeuronType::ThalamoCortical63);
-    auto sigm_act_1 = std::make_unique<CxxSDNN::SigmoidActivation>();
-    auto sigm_act_2 = std::make_unique<CxxSDNN::SigmoidActivation>();
 
-    auto W_1 = -.1 * xt::ones<double>({dim, 2u*dim}); // 1. 4х8
-    auto W_2 = -.1 * xt::ones<double>({dim, 2u*dim}); // 1.
-    auto A   = 160. * xt::diag(xt::xarray<double>{-1., -1., -1., -1.}); // 162.
-    auto P   = 50. * xt::diag(xt::xarray<double>{1., 1., 1., 1.}); // 3337.
-    auto K_1 = 3000. * xt::diag(xt::xarray<double>{1., 1., 1., 1.}); // 1.
-    auto K_2 = .001 * xt::diag(xt::xarray<double>{1., 1., 1., 1.});  // 0.1
+    auto act_1 = std::make_unique<CxxSDNN::SigmoidActivation>();
+    auto act_2 = std::make_unique<CxxSDNN::SigmoidActivation>();
 
-    // CxxSDNN::SpikeDNNet dnn_izh(
-    //     std::move(izh_act_1), std::move(izh_act_2), // Activation functions
-    //     W_1, W_2, // W_1, W_2
-    //     dim, A, // dim, mat_A
-    //     P, K_1, // mat_P, K_1
-    //     K_2 // K_2
-    // );
-
-    CxxSDNN::SpikeDNNet dnn_sigm(
-        std::move(sigm_act_1), std::move(sigm_act_2), // Activation functions
-        W_1, W_2, // W_1, W_2
-        dim, A, // dim, mat_A
-        P, K_1, // mat_P, K_1
-        K_2 // K_2
-    );
+    auto model = UtilityFunctionLibrary::make_dnn(dim, std::move(act_1), std::move(act_2), model_params);
 
     UtilityFunctionLibrary::vl_tr_map<double> folds{
         {
@@ -78,13 +63,7 @@ int main(int argc, char** argv)
         }
     };
 
-    // std::cout << "Izhikevich timings: " << UtilityFunctionLibrary::timeit([&dnn_izh, &tr_target, &tr_control, &n_epochs, &k_points](){ 
-    //     dnn_izh.fit(tr_target, tr_control, 0.01, n_epochs, k_points); }, 100u) << '\n';
-    
-    // std::cout << "Sigmoidal timings: " << UtilityFunctionLibrary::timeit([&dnn_sigm, &tr_target, &tr_control, &n_epochs, &k_points](){ 
-    //     dnn_sigm.fit(tr_target, tr_control, 0.01, n_epochs, k_points); }, 100u) << '\n';
-
-    auto res = UtilityFunctionLibrary::dnn_validate(dnn_sigm, folds, n_epochs, k_points);
+    auto res = UtilityFunctionLibrary::dnn_validate(std::move(model), folds, n_epochs, k_points);
 
     std::cout << res;
 
