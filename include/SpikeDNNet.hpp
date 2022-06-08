@@ -4,6 +4,8 @@
 #include "xtensor/xio.hpp"
 
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 namespace CxxSDNN
 {
@@ -11,23 +13,24 @@ namespace CxxSDNN
 
   class SpikeDNNet {
   private:
-    size_t mat_dim;
+    std::unique_ptr<AbstractActivation> afunc_1;
+    std::unique_ptr<AbstractActivation> afunc_2;
     xt::xarray<double> mat_A;
     xt::xarray<double> mat_P;
     xt::xarray<double> mat_K_1;
     xt::xarray<double> mat_K_2;
-    xt::xarray<double> mat_W_1;
-    xt::xarray<double> mat_W_2;
     xt::xarray<double> init_mat_W_1;
     xt::xarray<double> init_mat_W_2;
+    size_t mat_dim;
+
+    xt::xarray<double> mat_W_1;
+    xt::xarray<double> mat_W_2;
     xt::xarray<double> array_hist_W_1;
     xt::xarray<double> array_hist_W_2;
     xt::xarray<double> smoothed_W_1;
     xt::xarray<double> smoothed_W_2;
     xt::xarray<double> neuron_1_hist;
     xt::xarray<double> neuron_2_hist;
-    std::unique_ptr<AbstractActivation> afunc_1;
-    std::unique_ptr<AbstractActivation> afunc_2;
 
   public:
     explicit SpikeDNNet(
@@ -84,4 +87,8 @@ namespace CxxSDNN
       return out;
     }
   };
+
+  // std::unique_ptr<SpikeDNNet> make_dnn(
+  //   std::uint32_t dim, std::unique_ptr<AbstractActivation> act_1, std::unique_ptr<AbstractActivation> act_2,
+  //   std::unordered_map<std::string, xt::xarray<double>> kwargs);
 }; // namespace CxxSDNN

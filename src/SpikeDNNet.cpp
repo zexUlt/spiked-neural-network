@@ -75,13 +75,13 @@ xt::xarray<double> SpikeDNNet::fit(
   this->mat_W_1 = this->init_mat_W_1;
   this->mat_W_2 = this->init_mat_W_2;
 
-  this->array_hist_W_1 = xt::ones<double>({nt, this->mat_dim, 2u * this->mat_dim});
-  this->array_hist_W_2 = xt::ones<double>({nt, this->mat_dim, 2u * this->mat_dim});
+  this->array_hist_W_1 = xt::ones<double>({nt, this->mat_W_1.shape(0), this->mat_W_1.shape(1)});
+  this->array_hist_W_2 = xt::ones<double>({nt, this->mat_W_1.shape(0), this->mat_W_1.shape(1)});
 
-  this->neuron_1_hist = xt::ones<double>({nt, 2u * this->mat_dim, size_t(1)});
-  this->neuron_2_hist = xt::ones<double>({nt, 2u * this->mat_dim, vec_u.shape(1)});
+  this->neuron_1_hist = xt::ones<double>({nt, this->mat_dim, size_t(1)});
+  this->neuron_2_hist = xt::ones<double>({nt, this->mat_dim, vec_u.shape(1)});
 
-  for(int e = 0; e < n_epochs; ++e) {
+  for(std::uint32_t e = 0; e < n_epochs; ++e) {
     vec_x = xt::eval(xt::flip(vec_x, 0));
     vec_u = xt::eval(xt::flip(vec_u, 0));
 
@@ -90,7 +90,7 @@ xt::xarray<double> SpikeDNNet::fit(
       this->mat_W_2 = xt::view(this->smoothed_W_2, -1);
     }
 
-    for(int i = 0; i < nt - 1; ++i) {
+    for(size_t i = 0; i < nt - 1; ++i) {
       xt::xarray<double> current_vec_est = xt::view(vec_est, i);
       xt::xarray<double> current_vec_u   = xt::view(vec_u, i);
       xt::xarray<double> current_delta   = current_vec_est - xt::view(vec_x, i);
@@ -99,19 +99,21 @@ xt::xarray<double> SpikeDNNet::fit(
       auto neuron_out_2 = (*this->afunc_2)(current_vec_est, 0.01);
 
       auto vec_est_next = xt::view(vec_est, i + 1); // vec_est[i + 1]
-      vec_est_next      = xt::eval(
+      DEBUG_WHERE;
+      DEBUG_SHAPE(neuron_out_1);
+      DEBUG_SHAPE(mat_W_1);
+      vec_est_next = xt::eval(
         current_vec_est +
         step * (xt::squeeze(xt::linalg::dot(this->mat_A, current_vec_est)) +
-                xt::squeeze(xt::linalg::dot(this->mat_W_1, neuron_out_1))) + // (4x8)x(8x1) -> (4x1)
-        xt::linalg::dot(
-          xt::linalg::dot(this->mat_W_2, neuron_out_2), // (4x8)x(8x3)
-          current_vec_u));
+                xt::squeeze(xt::linalg::dot(this->mat_W_1, neuron_out_1))) +
+        xt::linalg::dot(xt::linalg::dot(this->mat_W_2, neuron_out_2), current_vec_u));
 
+      DEBUG_WHERE;
       // Calculating right-hand sides of dWi/dt
       xt::xarray<double> fxn1 = (xt::linalg::dot(
         xt::linalg::dot(xt::linalg::dot(this->mat_K_1, this->mat_P), current_delta.reshape({-1, 1})),
         xt::transpose(neuron_out_1)));
-
+      DEBUG_WHERE;
       xt::xarray<double> fxn2 = (xt::linalg::dot(
         xt::linalg::dot(
           xt::linalg::dot(xt::linalg::dot(this->mat_K_2, this->mat_P), current_delta.reshape({-1, 1})),
@@ -125,13 +127,13 @@ xt::xarray<double> SpikeDNNet::fit(
       auto const_neuron_out_2       = const_cast<const decltype(*this->afunc_2)>(*this->afunc_2)(vec_est_next, 0.01);
       xt::xarray<double> next_delta = vec_est_next - xt::view(vec_x, i + 1);
       xt::xarray<double> next_vec_u = xt::view(vec_u, i + 1);
-
+      DEBUG_WHERE;
       // Calculating the right-hand side of dWi/dt
       // On the next sample
       xt::xarray<double> fxnp1 = (xt::linalg::dot(
         xt::linalg::dot(xt::linalg::dot(this->mat_K_1, this->mat_P), next_delta.reshape({-1, 1})),
         xt::transpose(const_neuron_out_1)));
-
+      DEBUG_WHERE;
       xt::xarray<double> fxnp2 = (xt::linalg::dot(
         xt::linalg::dot(
           xt::linalg::dot(xt::linalg::dot(this->mat_K_2, this->mat_P), next_delta.reshape({-1, 1})),
