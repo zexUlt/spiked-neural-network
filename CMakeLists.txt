@@ -2,9 +2,24 @@ cmake_minimum_required(VERSION 3.16)
 
 project("spiked-neural-network" CXX)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 message(STATUS "Set build type to ${CMAKE_BUILD_TYPE}")
+
+# =======================================
+#      ENABLING TIME MEASUREMENT DISPLAY
+# =======================================
+set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
+set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CMAKE_COMMAND} -E time")
+# =======================================
+
+# =======================================
+#      SETTING UP COMPILE OPTIONS
+# =======================================
+# add_compile_options(-Wall)
+add_compile_options(-Winvalid-pch)
+# =======================================
+
 
 # =======================================
 #      SUBMODULES CHECKOUT
@@ -90,6 +105,22 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 list(APPEND CMAKE_INCLUDE_PATH ${EXTERNAL_DEPS}/xtl/include)
 list(APPEND CMAKE_INCLUDE_PATH ${EXTERNAL_DEPS}/xtensor/include)
 list(APPEND CMAKE_INCLUDE_PATH ${EXTERNAL_DEPS}/xtensor-blas/include)
+
+
+# =======================================
+#    SETTING UP PRECOMPILED HEADERS
+# =======================================
+target_precompile_headers(${PROJECT_NAME}
+    PRIVATE
+    <istream>
+    <fstream>
+    <unordered_map>
+    <string>
+    ${SOURCE_INCLUDE_DIR}/SigmoidActivation.hpp
+    ${SOURCE_INCLUDE_DIR}/IzhikevichActivation.hpp
+)
+# =======================================
+
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC ${EXTERNAL_DEPS}/xtl/include
