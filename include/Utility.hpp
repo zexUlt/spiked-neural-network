@@ -58,12 +58,12 @@ public:
     return out;
   }
 
-  static ValidationResults
-  dnn_validate(CxxSDNN::SpikeDNNet& dnn, vl_tr_map<double> folds, std::uint16_t n_epochs, std::uint16_t k_points)
+  static ValidationResults dnn_validate(
+    std::unique_ptr<CxxSDNN::SpikeDNNet> dnn, vl_tr_map<double> folds, std::uint16_t n_epochs, std::uint16_t k_points)
   {
     ValidationResults results;
 
-    std::cout << dnn;
+    std::cout << *dnn;
 
     auto tr_target  = folds["tr"].first / 10.;
     auto tr_control = folds["tr"].second;
@@ -71,8 +71,8 @@ public:
     auto vl_target  = folds["vl"].first;
     auto vl_control = folds["vl"].second;
 
-    auto target_est = dnn.fit(tr_target, tr_control, 0.0001, n_epochs, k_points);
-    auto vl_pred    = dnn.predict(xt::view(tr_target, -1, 0), vl_control);
+    auto target_est = dnn->fit(tr_target, tr_control, 0.0001, n_epochs, k_points);
+    auto vl_pred    = dnn->predict(xt::view(tr_target, -1, 0), vl_control);
 
     xt::xarray<double> tr_col     = xt::col(tr_target, 0);
     xt::xarray<double> target_col = xt::col(target_est, 0);
@@ -88,10 +88,10 @@ public:
 
     results.tr_est.emplace_back(target_est);
     results.vl_res.emplace_back(vl_pred);
-    results.W_1 = dnn.get_weights(0);
-    results.W_2 = dnn.get_weights(1);
-    results.N_1 = dnn.get_neurons_history(0);
-    results.N_2 = dnn.get_neurons_history(1);
+    results.W_1 = dnn->get_weights(0);
+    results.W_2 = dnn->get_weights(1);
+    results.N_1 = dnn->get_neurons_history(0);
+    results.N_2 = dnn->get_neurons_history(1);
 
     return results;
   }
@@ -132,49 +132,6 @@ public:
     xt::dump_npy("../plot_data/neuro2.npy", data.N_2);
   }
 
-  static std::unique_ptr<CxxSDNN::IzhikevichActivation>
-  make_izhikevich(double input_scale, double output_scale, std::vector<size_t> shape, Izhi::NeuronType type)
-  {
-    std::unique_ptr<Izhi> out;
-
-    switch(type) {
-    case Izhi::NeuronType::RegularSpiking :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 2., -65, 8, -65, shape);
-      out->set_type(Izhi::NeuronType::RegularSpiking);
-      break;
-    case Izhi::NeuronType::IntrinsicallyBursting :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 2., -55, 4, -65, shape);
-      out->set_type(Izhi::NeuronType::IntrinsicallyBursting);
-      break;
-    case Izhi::NeuronType::Chattering :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 2., -50, 2, -65, shape);
-      out->set_type(Izhi::NeuronType::Chattering);
-      break;
-    case Izhi::NeuronType::FastSpiking :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.1, 0.2, -65, 2, -65, shape);
-      out->set_type(Izhi::NeuronType::FastSpiking);
-      break;
-    case Izhi::NeuronType::LowThresholdSpiking :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 30, 0.02, 0.25, -65, 2, -65, shape);
-      out->set_type(Izhi::NeuronType::LowThresholdSpiking);
-      break;
-    case Izhi::NeuronType::ThalamoCortical63 :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 40, 0.02, 0.25, -65, 0.05, -63, shape);
-      out->set_type(Izhi::NeuronType::ThalamoCortical63);
-      break;
-    case Izhi::NeuronType::ThalamoCortical87 :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.25, -65, 0.05, -87, shape);
-      out->set_type(Izhi::NeuronType::ThalamoCortical87);
-      break;
-    case Izhi::NeuronType::Resonator :
-      out = std::make_unique<Izhi>(input_scale, output_scale, 30, 0.1, 0.26, -65, 2, -65, shape);
-      out->set_type(Izhi::NeuronType::Resonator);
-      break;
-    }
-
-    return out;
-  }
-
   static double timeit(std::function<void(void)> foo, std::uint32_t count = 1)
   {
     std::vector<double> times(count);
@@ -187,5 +144,14 @@ public:
     }
 
     return std::accumulate(times.begin(), times.end(), 0.) / count;
+  }
+
+  static std::unique_ptr<CxxSDNN::SpikeDNNet> make_dnn(
+    std::uint32_t dim, std::unique_ptr<CxxSDNN::AbstractActivation> act_1,
+    std::unique_ptr<CxxSDNN::AbstractActivation> act_2, std::unordered_map<std::string, xt::xarray<double>> kwargs)
+  {
+    return std::make_unique<CxxSDNN::SpikeDNNet>(
+      std::move(act_1), std::move(act_2), kwargs["W_1"], kwargs["W_2"], dim, kwargs["A"], kwargs["P"], kwargs["K_1"],
+      kwargs["K_2"]);
   }
 };
