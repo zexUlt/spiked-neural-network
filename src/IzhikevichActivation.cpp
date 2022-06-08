@@ -169,3 +169,47 @@ const std::string IzhikevichActivation::whoami() const
 
   return out;
 }
+
+std::unique_ptr<CxxSDNN::IzhikevichActivation> make_izhikevich(
+  double input_scale, double output_scale, std::vector<size_t> shape, IzhikevichActivation::NeuronType type)
+{
+  using Izhi = IzhikevichActivation;
+  std::unique_ptr<Izhi> out;
+
+  switch(type) {
+  case Izhi::NeuronType::RegularSpiking :
+    out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 2., -65, 8, -65, shape);
+    out->set_type(Izhi::NeuronType::RegularSpiking);
+    break;
+  case Izhi::NeuronType::IntrinsicallyBursting :
+    out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 2., -55, 4, -65, shape);
+    out->set_type(Izhi::NeuronType::IntrinsicallyBursting);
+    break;
+  case Izhi::NeuronType::Chattering :
+    out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 2., -50, 2, -65, shape);
+    out->set_type(Izhi::NeuronType::Chattering);
+    break;
+  case Izhi::NeuronType::FastSpiking :
+    out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.1, 0.2, -65, 2, -65, shape);
+    out->set_type(Izhi::NeuronType::FastSpiking);
+    break;
+  case Izhi::NeuronType::LowThresholdSpiking :
+    out = std::make_unique<Izhi>(input_scale, output_scale, 30, 0.02, 0.25, -65, 2, -65, shape);
+    out->set_type(Izhi::NeuronType::LowThresholdSpiking);
+    break;
+  case Izhi::NeuronType::ThalamoCortical63 :
+    out = std::make_unique<Izhi>(input_scale, output_scale, 40, 0.02, 0.25, -65, 0.05, -63, shape);
+    out->set_type(Izhi::NeuronType::ThalamoCortical63);
+    break;
+  case Izhi::NeuronType::ThalamoCortical87 :
+    out = std::make_unique<Izhi>(input_scale, output_scale, 50, 0.02, 0.25, -65, 0.05, -87, shape);
+    out->set_type(Izhi::NeuronType::ThalamoCortical87);
+    break;
+  case Izhi::NeuronType::Resonator :
+    out = std::make_unique<Izhi>(input_scale, output_scale, 30, 0.1, 0.26, -65, 2, -65, shape);
+    out->set_type(Izhi::NeuronType::Resonator);
+    break;
+  }
+
+  return out;
+}

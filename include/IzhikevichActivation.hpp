@@ -54,4 +54,7 @@ namespace CxxSDNN
     NeuronType type = NeuronType::Custom;
   };
 
+  std::unique_ptr<CxxSDNN::IzhikevichActivation> make_izhikevich(
+    double input_scale, double output_scale, std::vector<size_t> shape, IzhikevichActivation::NeuronType type);
+
 }; // namespace CxxSDNN
