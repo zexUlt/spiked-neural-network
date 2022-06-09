@@ -19,4 +19,4 @@ namespace cxx_sdnn
     std::vector<size_t> shape;
   };
 
-}; // namespace CxxSDNN
+}; // namespace cxx_sdnn

@@ -58,4 +58,4 @@ namespace cxx_sdnn
   std::unique_ptr<cxx_sdnn::IzhikevichActivation> make_izhikevich(
     double inputScale, double outputScale, std::vector<size_t> shape, IzhikevichActivation::NeuronType type);
 
-}; // namespace CxxSDNN
+}; // namespace cxx_sdnn

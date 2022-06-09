@@ -36,8 +36,8 @@ namespace cxx_sdnn
     explicit SpikeDNNet(
       std::unique_ptr<AbstractActivation> actFunc1, std::unique_ptr<AbstractActivation> actFunc2,
       xt::xarray<double> matW1, xt::xarray<double> matW2, size_t dim = 2,
-      xt::xarray<double> matA   = 20. * xt::diag(xt::xarray<double>({-1., -2.})),
-      xt::xarray<double> matP   = 1575.9 * xt::diag(xt::xarray<double>({60., 40.})),
+      xt::xarray<double> matA  = 20. * xt::diag(xt::xarray<double>({-1., -2.})),
+      xt::xarray<double> matP  = 1575.9 * xt::diag(xt::xarray<double>({60., 40.})),
       xt::xarray<double> matK1 = .15 * xt::diag(xt::xarray<double>({10., 1.})),
       xt::xarray<double> matK2 = .15 * xt::diag(xt::xarray<double>({1., 1.})));
 
@@ -91,4 +91,4 @@ namespace cxx_sdnn
   // std::unique_ptr<SpikeDNNet> make_dnn(
   //   std::uint32_t dim, std::unique_ptr<AbstractActivation> act_1, std::unique_ptr<AbstractActivation> act_2,
   //   std::unordered_map<std::string, xt::xarray<double>> kwargs);
-}; // namespace CxxSDNN
+}; // namespace cxx_sdnn

@@ -16,7 +16,7 @@ class UtilityFunctionLibrary {
 public:
   template<typename Dtype>
   using VlTrMap = std::map<std::string, std::pair<xt::xarray<Dtype>, xt::xarray<Dtype>>>;
-  using Izhi      = cxx_sdnn::IzhikevichActivation;
+  using Izhi    = cxx_sdnn::IzhikevichActivation;
 
   struct ValidationResults
   {
@@ -45,7 +45,7 @@ public:
 
     const auto& minV = (NF < NG) ? f : g;
     const auto& maxV = (NF < NG) ? g : f;
-    const auto N      = std::max(NF, NG) - std::min(NF, NG) + 1;
+    const auto N     = std::max(NF, NG) - std::min(NF, NG) + 1;
 
     xt::xarray<double> out = xt::zeros<double>({N});
 
@@ -100,7 +100,7 @@ public:
   static double mean_squared_error(xt::xarray<Dtype> yTrue, xt::xarray<Dtype> yPred)
   {
     xt::xarray<Dtype> sq = xt::square(yTrue - yPred);
-    auto outputErrors   = xt::average(sq);
+    auto outputErrors    = xt::average(sq);
 
     return xt::average(outputErrors)();
   }
@@ -109,7 +109,7 @@ public:
   static double mean_absolute_error(xt::xarray<Dtype> yTrue, xt::xarray<Dtype> yPred)
   {
     xt::xarray<Dtype> absol = xt::abs(yPred - yTrue);
-    auto outputErrors      = xt::average(absol);
+    auto outputErrors       = xt::average(absol);
 
     return xt::average(outputErrors)();
   }

@@ -12,8 +12,7 @@ IzhikevichActivation::IzhikevichActivation(
   double iScale, double oScale, double izhBorder, double a, double b, double c, double d, double e,
   std::vector<size_t> shape) :
   Super(shape),
-  inputScale{iScale}, outputScale{oScale},
-  izhBorder{izhBorder}, paramA{a}, paramB{b}, paramC{c}, paramD{d}, paramE{e}
+  inputScale{iScale}, outputScale{oScale}, izhBorder{izhBorder}, paramA{a}, paramB{b}, paramC{c}, paramD{d}, paramE{e}
 {
   control = xt::eval(xt::ones<double>(shape) * paramB * paramE);
   state   = xt::eval(xt::ones<double>(shape) * paramE);
@@ -60,11 +59,11 @@ xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, do
 
   this->control += step * (this->paramA * (this->paramB * this->state - this->control));
 
-  auto beyondBorder    = this->state > this->izhBorder;
-  auto stateBeyond     = xt::masked_view(this->state, beyondBorder);
+  auto beyondBorder   = this->state > this->izhBorder;
+  auto stateBeyond    = xt::masked_view(this->state, beyondBorder);
   auto controlByState = xt::masked_view(this->control, beyondBorder);
 
-  stateBeyond     = vecScale * this->paramC;
+  stateBeyond    = vecScale * this->paramC;
   controlByState = vecScale * this->paramD;
 
   return this->state * this->outputScale;
@@ -171,8 +170,8 @@ const std::string IzhikevichActivation::whoami() const
   return out;
 }
 
-std::unique_ptr<cxx_sdnn::IzhikevichActivation> make_izhikevich(
-  double inputScale, double outputScale, std::vector<size_t> shape, IzhikevichActivation::NeuronType type)
+std::unique_ptr<cxx_sdnn::IzhikevichActivation>
+make_izhikevich(double inputScale, double outputScale, std::vector<size_t> shape, IzhikevichActivation::NeuronType type)
 {
   using Izhi = IzhikevichActivation;
   std::unique_ptr<Izhi> out;

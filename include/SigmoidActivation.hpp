@@ -21,4 +21,4 @@ namespace cxx_sdnn
     const std::string whoami() const override;
   };
 
-}; // namespace CxxSDNN
+}; // namespace cxx_sdnn
