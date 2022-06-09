@@ -114,6 +114,7 @@ void IzhikevichActivation::set_type(NeuronType newType)
 const std::string IzhikevichActivation::whoami() const
 {
   std::string out;
+  
 
   out += "\tIzhikevich neuron pack\n\tShape: {";
   for(auto x : this->shape) {
