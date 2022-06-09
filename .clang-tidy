@@ -1,0 +1,90 @@
+---
+Checks:         bugprone-argument-comment,bugprone-copy-constructor-init,bugprone-dangling-handle,bugprone-forward-decalaration-namespace,>-
+                bugprone-implicit-widening-of-multiplication-result,bugprone-infinite-loop,>-
+                bugprone-misplaced-widening-cast,bugprone-move-forwarding-reference,
+                bugprone-suspicious-semicolon,readability-identifier-naming,>-
+                clang-analyzer-*
+WarningsAsErrors: ''
+HeaderFilterRegex: '^(include|src)*'
+AnalyzeTemporaryDtors: false
+FormatStyle:     'None'
+User:            zexult
+CheckOptions:
+  - key:             bugprone-argument-comment.CommentBoolLiterals
+    value:           true
+  - key:             bugprone-argument-comment.CommentIntegerLiterals
+    value:           true
+  - key:             bugprone-argument-comment.CommentFloatLiterals
+    value:           true
+  - key:             bugprone-argument-comment.CommentStringLiterals
+    value:           true
+  - key:             bugprone-argument-comment.CommentCharacterLiterals
+    value:           true
+  - key:             bugprone-argument-comment.CommentNullPtrs
+    value:           true
+  - key:             bugprone-misplaced-widening-cast.CheckImplicitCasts
+    value:           true
+  - key:             readability-identifier-naming.AbstractClassCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.AggressiveDependentMemeberLookup
+    value:           true
+  - key:             readability-identifier-naming.ClassCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.ClassConstantCase
+    value:           camelBack
+  - key:             readability-identifier-naming.ClassMemberCase
+    value:           camelBack
+  - key:             readability-identifier-naming.ClassMethodCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ConstantCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.EnumCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.LocalVariableCase
+    value:           camelBack
+  - key:             readability-identifier-naming.MemberCase
+    value:           camelBack
+  - key:             readability-identifier-naming.NamespaceCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ParameterCase
+    value:           camelBack
+  - key:             readability-identifier-naming.StructCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.TemplateParameterCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.TypeAliasCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.TypedefCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.VariableCase
+    value:           camelBack
+  - key:             cert-dcl16-c.NewSuffixes
+    value:           'L;LL;LU;LLU'
+  - key:             cert-oop54-cpp.WarnOnlyIfThisHasSuspiciousField
+    value:           '0'
+  - key:             cppcoreguidelines-explicit-virtual-functions.IgnoreDestructors
+    value:           '1'
+  - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value:           '1'
+  - key:             google-readability-braces-around-statements.ShortStatementLines
+    value:           '1'
+  - key:             google-readability-function-size.StatementThreshold
+    value:           '800'
+  - key:             google-readability-namespace-comments.ShortNamespaceLines
+    value:           '10'
+  - key:             google-readability-namespace-comments.SpacesBeforeComments
+    value:           '2'
+  - key:             modernize-loop-convert.MaxCopySize
+    value:           '16'
+  - key:             modernize-loop-convert.MinConfidence
+    value:           reasonable
+  - key:             modernize-loop-convert.NamingStyle
+    value:           CamelCase
+  - key:             modernize-pass-by-value.IncludeStyle
+    value:           llvm
+  - key:             modernize-replace-auto-ptr.IncludeStyle
+    value:           llvm
+  - key:             modernize-use-nullptr.NullMacros
+    value:           'NULL'
+...
+
