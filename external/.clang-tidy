@@ -1,0 +1,4 @@
+---
+Checks: hicpp-no-assembler # Just to override the parent config
+...
+
