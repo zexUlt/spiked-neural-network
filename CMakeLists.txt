@@ -4,6 +4,8 @@ project("spiked-neural-network" CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+include(cmake/clang-cxx-dev-tools.cmake)
+
 message(STATUS "Set build type to ${CMAKE_BUILD_TYPE}")
 
 # =======================================
@@ -74,7 +76,7 @@ add_subdirectory(${EXTERNAL_DEPS}/xtensor-blas)
 
 option(ENABLE_HAND_TESTS "Disable linking of source code files except main.cpp in order to test external libs" OFF)
 
-list(APPEND SOURCES main.cpp)
+list(APPEND PROJECT_SOURCES main.cpp)
 
 # =======================================
 #    CHOOSING BETWEEN FULL SOURCE BUILD OR JUST main.cpp
@@ -89,7 +91,7 @@ if(NOT ENABLE_HAND_TESTS)
 
     # Traversing through ./src/ and ./include/ directories and collecting source code files
     foreach(file ${files})
-        list(APPEND SOURCES ${file})
+        list(APPEND PROJECT_SOURCES ${file})
     endforeach()
 else()
     message(STATUS "Configuring for build only with main.cpp")
@@ -97,7 +99,7 @@ endif()
 
 add_executable(
     ${PROJECT_NAME} 
-    ${SOURCES}
+    ${PROJECT_SOURCES}
 ) 
 
 
@@ -107,23 +109,25 @@ list(APPEND CMAKE_INCLUDE_PATH ${EXTERNAL_DEPS}/xtensor/include)
 list(APPEND CMAKE_INCLUDE_PATH ${EXTERNAL_DEPS}/xtensor-blas/include)
 
 
-# =======================================
-#    SETTING UP PRECOMPILED HEADERS
-# =======================================
-target_precompile_headers(${PROJECT_NAME}
-    PRIVATE
-    <istream>
-    <fstream>
-    <unordered_map>
-    <string>
-    ${SOURCE_INCLUDE_DIR}/SigmoidActivation.hpp
-    ${SOURCE_INCLUDE_DIR}/IzhikevichActivation.hpp
-)
-# =======================================
+# # =======================================
+# #    SETTING UP PRECOMPILED HEADERS
+# # =======================================
+# target_precompile_headers(${PROJECT_NAME}
+#     PRIVATE
+#     <istream>
+#     <fstream>
+#     <unordered_map>
+#     <string>
+#     <vector>
+#     ${SOURCE_INCLUDE_DIR}/SigmoidActivation.hpp
+#     ${SOURCE_INCLUDE_DIR}/IzhikevichActivation.hpp
+# )
+# # =======================================
 
 
 target_include_directories(${PROJECT_NAME}
-    PUBLIC ${EXTERNAL_DEPS}/xtl/include
+    PUBLIC
+        ${EXTERNAL_DEPS}/xtl/include
         ${EXTERNAL_DEPS}/xtensor/include
         ${EXTERNAL_DEPS}/xtensor-blas/include
         ${SOURCE_INCLUDE_DIR}
