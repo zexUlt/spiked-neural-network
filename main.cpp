@@ -49,12 +49,12 @@ int main(int argc, char** argv)
     // auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(50, 1/40., {2*dim, 1}, Izhi::NeuronType::Resonator);
     // auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(55, 1/40., {2*dim, tr_control.shape(1)}, Izhi::NeuronType::ThalamoCortical63);
 
-    auto act_1 = std::make_unique<CxxSDNN::SigmoidActivation>();
-    auto act_2 = std::make_unique<CxxSDNN::SigmoidActivation>();
+    auto act_1 = std::make_unique<cxx_sdnn::SigmoidActivation>(std::vector<size_t>{dim, 1});
+    auto act_2 = std::make_unique<cxx_sdnn::SigmoidActivation>(std::vector<size_t>{dim, tr_control.shape(1)});
 
     auto model = UtilityFunctionLibrary::make_dnn(dim, std::move(act_1), std::move(act_2), model_params);
 
-    UtilityFunctionLibrary::vl_tr_map<double> folds{
+    UtilityFunctionLibrary::VlTrMap<double> folds{
         {
             "tr", {tr_target, tr_control}
         }, 
@@ -67,7 +67,7 @@ int main(int argc, char** argv)
 
     std::cout << res;
 
-    UtilityFunctionLibrary::dumpData(tr_target, tr_control, res);
+    UtilityFunctionLibrary::dump_data(tr_target, tr_control, res);
 
     return 0;
 }

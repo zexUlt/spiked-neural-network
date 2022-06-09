@@ -7,15 +7,15 @@
 #include <xtensor-blas/xlinalg.hpp>
 #include <xtensor/xview.hpp>
 
-using CxxSDNN::SpikeDNNet;
+using cxx_sdnn::SpikeDNNet;
 
 SpikeDNNet::SpikeDNNet(
-  std::unique_ptr<AbstractActivation> act_func_1, std::unique_ptr<AbstractActivation> act_func_2,
-  xt::xarray<double> _mat_W_1, xt::xarray<double> _mat_W_2, size_t dim, xt::xarray<double> _mat_A,
-  xt::xarray<double> _mat_P, xt::xarray<double> _mat_K_1, xt::xarray<double> _mat_K_2) :
-  afunc_1{std::move(act_func_1)},
-  afunc_2{std::move(act_func_2)}, mat_A{_mat_A}, mat_P{_mat_P}, mat_K_1{_mat_K_1}, mat_K_2{_mat_K_2},
-  init_mat_W_1{_mat_W_1}, init_mat_W_2{_mat_W_2}, mat_dim{dim}
+  std::unique_ptr<AbstractActivation> actFunc1, std::unique_ptr<AbstractActivation> actFunc2,
+  xt::xarray<double> matW1, xt::xarray<double> matW2, size_t dim, xt::xarray<double> matA,
+  xt::xarray<double> matP, xt::xarray<double> matK1, xt::xarray<double> matK2) :
+  afunc1{std::move(actFunc1)},
+  afunc2{std::move(actFunc2)}, matA{matA}, matP{matP}, matK1{matK1}, matK2{matK2},
+  initMatW1{matW1}, initMatW2{matW2}, matDim{dim}
 {}
 
 SpikeDNNet::SpikeDNNet(const SpikeDNNet& other) noexcept
@@ -25,25 +25,25 @@ SpikeDNNet::SpikeDNNet(const SpikeDNNet& other) noexcept
 
 SpikeDNNet& SpikeDNNet::operator=(const SpikeDNNet& other) noexcept
 {
-  this->mat_A          = other.mat_A;
-  this->mat_P          = other.mat_P;
-  this->mat_K_1        = other.mat_K_1;
-  this->mat_K_2        = other.mat_K_2;
-  this->mat_W_1        = other.mat_W_1;
-  this->mat_W_2        = other.mat_W_2;
-  this->init_mat_W_1   = other.init_mat_W_1;
-  this->init_mat_W_2   = other.init_mat_W_2;
-  this->array_hist_W_1 = other.array_hist_W_1;
-  this->array_hist_W_2 = other.array_hist_W_2;
-  this->smoothed_W_1   = other.smoothed_W_1;
-  this->smoothed_W_2   = other.smoothed_W_2;
+  this->matA          = other.matA;
+  this->matP          = other.matP;
+  this->matK1        = other.matK1;
+  this->matK2        = other.matK2;
+  this->matW1        = other.matW1;
+  this->matW2        = other.matW2;
+  this->initMatW1   = other.initMatW1;
+  this->initMatW2   = other.initMatW2;
+  this->arrayHistW1 = other.arrayHistW1;
+  this->arrayHistW2 = other.arrayHistW2;
+  this->smoothedW1   = other.smoothedW1;
+  this->smoothedW2   = other.smoothedW2;
 
   return *this;
 }
 
 xt::xarray<double> SpikeDNNet::moving_average(xt::xarray<double> x, std::uint32_t w)
 {
-  return UtilityFunctionLibrary::convolveValid(x, xt::ones<double>({w})) / static_cast<double>(w);
+  return UtilityFunctionLibrary::convolve_valid(x, xt::ones<double>({w})) / static_cast<double>(w);
 }
 
 xt::xarray<double> SpikeDNNet::smooth(xt::xarray<double> x, std::uint32_t w)
@@ -51,150 +51,150 @@ xt::xarray<double> SpikeDNNet::smooth(xt::xarray<double> x, std::uint32_t w)
   auto l         = x.shape(0);
   auto m         = x.shape(1);
   auto n         = x.shape(2);
-  auto new_sizeZ = l - w + 1u;
+  auto newSizeZ = l - w + 1u;
 
-  xt::xarray<double> new_x = xt::ones<double>({new_sizeZ, m, n});
+  xt::xarray<double> newX = xt::ones<double>({newSizeZ, m, n});
 
   for(auto i = 0u; i < m; ++i) {
     for(auto j = 0u; j < n; ++j) {
-      auto slice_x = xt::view(x, xt::all(), i, j);
-      auto m_av    = moving_average(slice_x, w);
-      xt::view(new_x, xt::all(), i, j).assign(m_av);
+      auto sliceX = xt::view(x, xt::all(), i, j);
+      auto mAv    = moving_average(sliceX, w);
+      xt::view(newX, xt::all(), i, j).assign(mAv);
     }
   }
 
-  return new_x;
+  return newX;
 }
 
 xt::xarray<double> SpikeDNNet::fit(
-  xt::xarray<double> vec_x, xt::xarray<double> vec_u, double step, std::uint32_t n_epochs, std::uint32_t k_points)
+  xt::xarray<double> vecX, xt::xarray<double> vecU, double step, std::uint32_t nEpochs, std::uint32_t kPoints)
 {
-  auto nt                    = vec_u.shape(0);
-  xt::xarray<double> vec_est = .01 * xt::ones<double>({nt, this->mat_dim});
+  auto nt                    = vecU.shape(0);
+  xt::xarray<double> vecEst = .01 * xt::ones<double>({nt, this->matDim});
 
-  this->mat_W_1 = this->init_mat_W_1;
-  this->mat_W_2 = this->init_mat_W_2;
+  this->matW1 = this->initMatW1;
+  this->matW2 = this->initMatW2;
 
-  this->array_hist_W_1 = xt::ones<double>({nt, this->mat_W_1.shape(0), this->mat_W_1.shape(1)});
-  this->array_hist_W_2 = xt::ones<double>({nt, this->mat_W_1.shape(0), this->mat_W_1.shape(1)});
+  this->arrayHistW1 = xt::ones<double>({nt, this->matW1.shape(0), this->matW1.shape(1)});
+  this->arrayHistW2 = xt::ones<double>({nt, this->matW1.shape(0), this->matW1.shape(1)});
 
-  this->neuron_1_hist = xt::ones<double>({nt, this->mat_dim, size_t(1)});
-  this->neuron_2_hist = xt::ones<double>({nt, this->mat_dim, vec_u.shape(1)});
+  this->neuron1Hist = xt::ones<double>({nt, this->matDim, size_t(1)});
+  this->neuron2Hist = xt::ones<double>({nt, this->matDim, vecU.shape(1)});
 
-  for(std::uint32_t e = 0; e < n_epochs; ++e) {
-    vec_x = xt::eval(xt::flip(vec_x, 0));
-    vec_u = xt::eval(xt::flip(vec_u, 0));
+  for(std::uint32_t e = 0; e < nEpochs; ++e) {
+    vecX = xt::eval(xt::flip(vecX, 0));
+    vecU = xt::eval(xt::flip(vecU, 0));
 
     if(e > 1) {
-      this->mat_W_1 = xt::view(this->smoothed_W_1, -1);
-      this->mat_W_2 = xt::view(this->smoothed_W_2, -1);
+      this->matW1 = xt::view(this->smoothedW1, -1);
+      this->matW2 = xt::view(this->smoothedW2, -1);
     }
 
     for(size_t i = 0; i < nt - 1; ++i) {
-      xt::xarray<double> current_vec_est = xt::view(vec_est, i);
-      xt::xarray<double> current_vec_u   = xt::view(vec_u, i);
-      xt::xarray<double> current_delta   = current_vec_est - xt::view(vec_x, i);
+      xt::xarray<double> currentVecEst = xt::view(vecEst, i);
+      xt::xarray<double> currentVecU   = xt::view(vecU, i);
+      xt::xarray<double> currentDelta   = currentVecEst - xt::view(vecX, i);
 
-      auto neuron_out_1 = (*this->afunc_1)(current_vec_est, 0.01);
-      auto neuron_out_2 = (*this->afunc_2)(current_vec_est, 0.01);
+      auto neuronOut1 = (*this->afunc1)(currentVecEst, 0.01);
+      auto neuronOut2 = (*this->afunc2)(currentVecEst, 0.01);
 
-      auto vec_est_next = xt::view(vec_est, i + 1); // vec_est[i + 1]
+      auto vecEstNext = xt::view(vecEst, i + 1); // vec_est[i + 1]
       DEBUG_WHERE;
-      DEBUG_SHAPE(neuron_out_1);
-      DEBUG_SHAPE(mat_W_1);
-      vec_est_next = xt::eval(
-        current_vec_est +
-        step * (xt::squeeze(xt::linalg::dot(this->mat_A, current_vec_est)) +
-                xt::squeeze(xt::linalg::dot(this->mat_W_1, neuron_out_1))) +
-        xt::linalg::dot(xt::linalg::dot(this->mat_W_2, neuron_out_2), current_vec_u));
+      DEBUG_SHAPE(neuronOut1);
+      DEBUG_SHAPE(matW1);
+      vecEstNext = xt::eval(
+        currentVecEst +
+        step * (xt::squeeze(xt::linalg::dot(this->matA, currentVecEst)) +
+                xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1))) +
+        xt::linalg::dot(xt::linalg::dot(this->matW2, neuronOut2), currentVecU));
 
       DEBUG_WHERE;
       // Calculating right-hand sides of dWi/dt
       xt::xarray<double> fxn1 = (xt::linalg::dot(
-        xt::linalg::dot(xt::linalg::dot(this->mat_K_1, this->mat_P), current_delta.reshape({-1, 1})),
-        xt::transpose(neuron_out_1)));
+        xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), currentDelta.reshape({-1, 1})),
+        xt::transpose(neuronOut1)));
       DEBUG_WHERE;
       xt::xarray<double> fxn2 = (xt::linalg::dot(
         xt::linalg::dot(
-          xt::linalg::dot(xt::linalg::dot(this->mat_K_2, this->mat_P), current_delta.reshape({-1, 1})),
-          current_vec_u.reshape({1, -1})),
-        xt::transpose(neuron_out_2)));
+          xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), currentDelta.reshape({-1, 1})),
+          currentVecU.reshape({1, -1})),
+        xt::transpose(neuronOut2)));
 
       // Calling activation functions on the next state vector, but without
       // changing their own state This is needed for implicit Runge-Kutta
       // integration method
-      auto const_neuron_out_1       = const_cast<const decltype(*this->afunc_1)>(*this->afunc_1)(vec_est_next, 0.01);
-      auto const_neuron_out_2       = const_cast<const decltype(*this->afunc_2)>(*this->afunc_2)(vec_est_next, 0.01);
-      xt::xarray<double> next_delta = vec_est_next - xt::view(vec_x, i + 1);
-      xt::xarray<double> next_vec_u = xt::view(vec_u, i + 1);
+      auto constNeuronOut1       = const_cast<decltype(*this->afunc1)>(*this->afunc1)(vecEstNext, 0.01);
+      auto constNeuronOut2       = const_cast<decltype(*this->afunc2)>(*this->afunc2)(vecEstNext, 0.01);
+      xt::xarray<double> nextDelta = vecEstNext - xt::view(vecX, i + 1);
+      xt::xarray<double> nextVecU = xt::view(vecU, i + 1);
       DEBUG_WHERE;
       // Calculating the right-hand side of dWi/dt
       // On the next sample
       xt::xarray<double> fxnp1 = (xt::linalg::dot(
-        xt::linalg::dot(xt::linalg::dot(this->mat_K_1, this->mat_P), next_delta.reshape({-1, 1})),
-        xt::transpose(const_neuron_out_1)));
+        xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), nextDelta.reshape({-1, 1})),
+        xt::transpose(constNeuronOut1)));
       DEBUG_WHERE;
       xt::xarray<double> fxnp2 = (xt::linalg::dot(
         xt::linalg::dot(
-          xt::linalg::dot(xt::linalg::dot(this->mat_K_2, this->mat_P), next_delta.reshape({-1, 1})),
-          next_vec_u.reshape({1, -1})),
-        xt::transpose(const_neuron_out_2)));
+          xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), nextDelta.reshape({-1, 1})),
+          nextVecU.reshape({1, -1})),
+        xt::transpose(constNeuronOut2)));
 
       // Prediction
-      xt::xarray<double> predicted_W_1 = this->mat_W_1 - step * fxn1;
+      xt::xarray<double> predictedW1 = this->matW1 - step * fxn1;
 
-      xt::xarray<double> predicted_W_2 = this->mat_W_2 - step * fxn2;
+      xt::xarray<double> predictedW2 = this->matW2 - step * fxn2;
 
       // Correction
-      this->mat_W_1 = this->mat_W_1 - step * (fxn1 + fxnp1) / 2.;
-      this->mat_W_2 = this->mat_W_2 - step * (fxn2 + fxnp2) / 2.;
+      this->matW1 = this->matW1 - step * (fxn1 + fxnp1) / 2.;
+      this->matW2 = this->matW2 - step * (fxn2 + fxnp2) / 2.;
 
-      xt::view(this->array_hist_W_1, i).assign(this->mat_W_1);
-      xt::view(this->array_hist_W_2, i).assign(this->mat_W_2);
+      xt::view(this->arrayHistW1, i).assign(this->matW1);
+      xt::view(this->arrayHistW2, i).assign(this->matW2);
 
-      xt::view(this->neuron_1_hist, i).assign(neuron_out_1);
-      xt::view(this->neuron_2_hist, i).assign(neuron_out_2);
+      xt::view(this->neuron1Hist, i).assign(neuronOut1);
+      xt::view(this->neuron2Hist, i).assign(neuronOut2);
     }
 
-    this->smoothed_W_1 = this->smooth(this->array_hist_W_1, k_points);
-    this->smoothed_W_2 = this->smooth(this->array_hist_W_2, k_points);
+    this->smoothedW1 = this->smooth(this->arrayHistW1, kPoints);
+    this->smoothedW2 = this->smooth(this->arrayHistW2, kPoints);
   }
 
-  return vec_est;
+  return vecEst;
 }
 
-xt::xarray<double> SpikeDNNet::predict(xt::xarray<double> init_state, xt::xarray<double> vec_u, double step)
+xt::xarray<double> SpikeDNNet::predict(xt::xarray<double> initState, xt::xarray<double> vecU, double step)
 {
-  auto nt                    = vec_u.shape(0);
-  xt::xarray<double> vec_est = init_state * xt::ones<double>({nt, this->mat_dim});
+  auto nt                    = vecU.shape(0);
+  xt::xarray<double> vecEst = initState * xt::ones<double>({nt, this->matDim});
 
-  auto W1 = xt::view(this->smoothed_W_1, -1);
-  auto W2 = xt::view(this->smoothed_W_2, -1);
+  auto w1 = xt::view(this->smoothedW1, -1);
+  auto w2 = xt::view(this->smoothedW2, -1);
 
   for(auto i = 0u; i < nt - 1; ++i) {
-    auto cur_est = xt::view(vec_est, i);
-    auto cur_u   = xt::view(vec_u, i);
+    auto curEst = xt::view(vecEst, i);
+    auto curU   = xt::view(vecU, i);
 
-    auto neuron_1_out = this->afunc_1->operator()(cur_est);
-    auto neuron_2_out = this->afunc_2->operator()(cur_est);
+    auto neuron1Out = this->afunc1->operator()(curEst);
+    auto neuron2Out = this->afunc2->operator()(curEst);
 
-    auto vec_est_next = xt::view(vec_est, i + 1);
-    vec_est_next      = cur_est + step * (xt::squeeze(xt::linalg::dot(this->mat_A, cur_est)) +
-                                     xt::squeeze(xt::linalg::dot(W1, neuron_1_out)) +
-                                     xt::linalg::dot(xt::linalg::dot(W2, neuron_2_out), cur_u));
+    auto vecEstNext = xt::view(vecEst, i + 1);
+    vecEstNext      = curEst + step * (xt::squeeze(xt::linalg::dot(this->matA, curEst)) +
+                                     xt::squeeze(xt::linalg::dot(w1, neuron1Out)) +
+                                     xt::linalg::dot(xt::linalg::dot(w2, neuron2Out), curU));
   }
 
-  return vec_est;
+  return vecEst;
 }
 
 xt::xarray<double> SpikeDNNet::get_weights(std::uint8_t idx) const
 {
   if(idx == 0) {
-    return this->array_hist_W_1;
+    return this->arrayHistW1;
   }
 
   if(idx == 1) {
-    return this->array_hist_W_2;
+    return this->arrayHistW2;
   }
 
   return xt::xarray<double>();
@@ -203,11 +203,11 @@ xt::xarray<double> SpikeDNNet::get_weights(std::uint8_t idx) const
 xt::xarray<double> SpikeDNNet::get_neurons_history(std::uint8_t idx) const
 {
   if(idx == 0) {
-    return this->neuron_1_hist;
+    return this->neuron1Hist;
   }
 
   if(idx == 1) {
-    return this->neuron_2_hist;
+    return this->neuron2Hist;
   }
 
   return xt::xarray<double>();
@@ -215,40 +215,40 @@ xt::xarray<double> SpikeDNNet::get_neurons_history(std::uint8_t idx) const
 
 const xt::xarray<double>& SpikeDNNet::get_A() const
 {
-  return this->mat_A;
+  return this->matA;
 }
 
 const xt::xarray<double>& SpikeDNNet::get_P() const
 {
-  return this->mat_P;
+  return this->matP;
 }
 
 const xt::xarray<double>& SpikeDNNet::get_K1() const
 {
-  return this->mat_K_1;
+  return this->matK1;
 }
 
 const xt::xarray<double>& SpikeDNNet::get_K2() const
 {
-  return this->mat_K_2;
+  return this->matK2;
 }
 
 const xt::xarray<double>& SpikeDNNet::get_W10() const
 {
-  return this->init_mat_W_1;
+  return this->initMatW1;
 }
 
 const xt::xarray<double>& SpikeDNNet::get_W20() const
 {
-  return this->init_mat_W_2;
+  return this->initMatW2;
 }
 
 const std::string SpikeDNNet::get_afunc_descr(size_t idx) const
 {
   if(idx == 0) {
-    return this->afunc_1->whoami();
+    return this->afunc1->whoami();
   } else if(idx == 1) {
-    return this->afunc_2->whoami();
+    return this->afunc2->whoami();
   } else {
     return "";
   }

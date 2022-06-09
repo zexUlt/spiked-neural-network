@@ -1,19 +1,23 @@
 #include "SigmoidActivation.hpp"
 
-using CxxSDNN::SigmoidActivation;
+using cxx_sdnn::SigmoidActivation;
 
-SigmoidActivation::SigmoidActivation(double a, double b, double c, double d) :
-  param_a{a}, param_b{b}, param_c{c}, param_d{d}
+SigmoidActivation::SigmoidActivation(std::vector<size_t> shape, double a, double b, double c, double d) :
+  Super(shape), paramA{a}, paramB{b}, paramC{c}, paramD{d}
 {}
 
 xt::xarray<double> SigmoidActivation::operator()(xt::xarray<double> input, double step = -1.)
 {
-  return this->param_a / (this->param_b + this->param_c * xt::exp(this->param_d * input));
+  return this->paramA /
+         (this->paramB +
+          this->paramC * xt::exp(this->paramD * xt::broadcast(input.reshape({this->shape[0], 1}), this->shape)));
 }
 
 xt::xarray<double> SigmoidActivation::operator()(xt::xarray<double> input, double step = -1.) const
 {
-  return this->param_a / (this->param_b + this->param_c * xt::exp(this->param_d * input));
+  return this->paramA /
+         (this->paramB +
+          this->paramC * xt::exp(this->paramD * xt::broadcast(input.reshape({this->shape[0], 1}), this->shape)));
 }
 
 const std::string SigmoidActivation::whoami() const
@@ -22,10 +26,10 @@ const std::string SigmoidActivation::whoami() const
 
   out += "Sigmoid Activation pack.\n";
   out += "Parameters:\n";
-  out += "a = " + std::to_string(this->param_a) + "\n";
-  out += "b = " + std::to_string(this->param_b) + "\n";
-  out += "c = " + std::to_string(this->param_c) + "\n";
-  out += "d = " + std::to_string(this->param_d) + "\n";
+  out += "a = " + std::to_string(this->paramA) + "\n";
+  out += "b = " + std::to_string(this->paramB) + "\n";
+  out += "c = " + std::to_string(this->paramC) + "\n";
+  out += "d = " + std::to_string(this->paramD) + "\n";
 
   return out;
 }
