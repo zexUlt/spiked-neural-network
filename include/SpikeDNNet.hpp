@@ -7,39 +7,39 @@
 #include <string>
 #include <unordered_map>
 
-namespace CxxSDNN
+namespace cxx_sdnn
 {
   class AbstractActivation;
 
   class SpikeDNNet {
   private:
-    std::unique_ptr<AbstractActivation> afunc_1;
-    std::unique_ptr<AbstractActivation> afunc_2;
-    xt::xarray<double> mat_A;
-    xt::xarray<double> mat_P;
-    xt::xarray<double> mat_K_1;
-    xt::xarray<double> mat_K_2;
-    xt::xarray<double> init_mat_W_1;
-    xt::xarray<double> init_mat_W_2;
-    size_t mat_dim;
+    std::unique_ptr<AbstractActivation> afunc1;
+    std::unique_ptr<AbstractActivation> afunc2;
+    xt::xarray<double> matA;
+    xt::xarray<double> matP;
+    xt::xarray<double> matK1;
+    xt::xarray<double> matK2;
+    xt::xarray<double> initMatW1;
+    xt::xarray<double> initMatW2;
+    size_t matDim;
 
-    xt::xarray<double> mat_W_1;
-    xt::xarray<double> mat_W_2;
-    xt::xarray<double> array_hist_W_1;
-    xt::xarray<double> array_hist_W_2;
-    xt::xarray<double> smoothed_W_1;
-    xt::xarray<double> smoothed_W_2;
-    xt::xarray<double> neuron_1_hist;
-    xt::xarray<double> neuron_2_hist;
+    xt::xarray<double> matW1;
+    xt::xarray<double> matW2;
+    xt::xarray<double> arrayHistW1;
+    xt::xarray<double> arrayHistW2;
+    xt::xarray<double> smoothedW1;
+    xt::xarray<double> smoothedW2;
+    xt::xarray<double> neuron1Hist;
+    xt::xarray<double> neuron2Hist;
 
   public:
     explicit SpikeDNNet(
-      std::unique_ptr<AbstractActivation> act_func_1, std::unique_ptr<AbstractActivation> act_func_2,
-      xt::xarray<double> mat_W_1, xt::xarray<double> mat_W_2, size_t dim = 2,
-      xt::xarray<double> mat_A   = 20. * xt::diag(xt::xarray<double>({-1., -2.})),
-      xt::xarray<double> mat_P   = 1575.9 * xt::diag(xt::xarray<double>({60., 40.})),
-      xt::xarray<double> mat_K_1 = .15 * xt::diag(xt::xarray<double>({10., 1.})),
-      xt::xarray<double> mat_K_2 = .15 * xt::diag(xt::xarray<double>({1., 1.})));
+      std::unique_ptr<AbstractActivation> actFunc1, std::unique_ptr<AbstractActivation> actFunc2,
+      xt::xarray<double> matW1, xt::xarray<double> matW2, size_t dim = 2,
+      xt::xarray<double> matA   = 20. * xt::diag(xt::xarray<double>({-1., -2.})),
+      xt::xarray<double> matP   = 1575.9 * xt::diag(xt::xarray<double>({60., 40.})),
+      xt::xarray<double> matK1 = .15 * xt::diag(xt::xarray<double>({10., 1.})),
+      xt::xarray<double> matK2 = .15 * xt::diag(xt::xarray<double>({1., 1.})));
 
     SpikeDNNet(const SpikeDNNet& other) noexcept;
 
@@ -50,10 +50,10 @@ namespace CxxSDNN
     xt::xarray<double> smooth(xt::xarray<double> x, std::uint32_t w = 2);
 
     xt::xarray<double> fit(
-      xt::xarray<double> vec_x, xt::xarray<double> vec_u, double step = .01, std::uint32_t n_epochs = 3,
-      std::uint32_t k_points = 2);
+      xt::xarray<double> vecX, xt::xarray<double> vecU, double step = .01, std::uint32_t nEpochs = 3,
+      std::uint32_t kPoints = 2);
 
-    xt::xarray<double> predict(xt::xarray<double> init_state, xt::xarray<double> vec_u, double step = .01);
+    xt::xarray<double> predict(xt::xarray<double> initState, xt::xarray<double> vecU, double step = .01);
 
     xt::xarray<double> get_weights(std::uint8_t idx) const;
 

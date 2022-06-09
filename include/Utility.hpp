@@ -14,44 +14,44 @@
 
 class UtilityFunctionLibrary {
 public:
-  template<typename dtype>
-  using vl_tr_map = std::map<std::string, std::pair<xt::xarray<dtype>, xt::xarray<dtype>>>;
-  using Izhi      = CxxSDNN::IzhikevichActivation;
+  template<typename Dtype>
+  using VlTrMap = std::map<std::string, std::pair<xt::xarray<Dtype>, xt::xarray<Dtype>>>;
+  using Izhi      = cxx_sdnn::IzhikevichActivation;
 
   struct ValidationResults
   {
-    std::pair<double, double> mse_res;
-    std::pair<double, double> mae_res;
-    std::vector<xt::xarray<double>> tr_est;
-    std::vector<xt::xarray<double>> vl_res;
-    xt::xarray<double> W_1;
-    xt::xarray<double> W_2;
-    xt::xarray<double> N_1;
-    xt::xarray<double> N_2;
+    std::pair<double, double> mseRes;
+    std::pair<double, double> maeRes;
+    std::vector<xt::xarray<double>> trEst;
+    std::vector<xt::xarray<double>> vlRes;
+    xt::xarray<double> w1;
+    xt::xarray<double> w2;
+    xt::xarray<double> n1;
+    xt::xarray<double> n2;
 
     friend std::ostream& operator<<(std::ostream& out, UtilityFunctionLibrary::ValidationResults res)
     {
-      out << "MSE: [Train: " << res.mse_res.first << ", Test: " << res.mse_res.second << "]\n";
-      out << "MAE: [Train: " << res.mae_res.first << ", Test: " << res.mae_res.second << "]\n";
+      out << "MSE: [Train: " << res.mseRes.first << ", Test: " << res.mseRes.second << "]\n";
+      out << "MAE: [Train: " << res.maeRes.first << ", Test: " << res.maeRes.second << "]\n";
 
       return out;
     }
   };
 
-  static xt::xarray<double> convolveValid(const xt::xarray<double>& f, const xt::xarray<double>& g)
+  static xt::xarray<double> convolve_valid(const xt::xarray<double>& f, const xt::xarray<double>& g)
   {
-    const auto nf = f.size();
-    const auto ng = g.size();
+    const auto NF = f.size();
+    const auto NG = g.size();
 
-    const auto& min_v = (nf < ng) ? f : g;
-    const auto& max_v = (nf < ng) ? g : f;
-    const auto n      = std::max(nf, ng) - std::min(nf, ng) + 1;
+    const auto& minV = (NF < NG) ? f : g;
+    const auto& maxV = (NF < NG) ? g : f;
+    const auto N      = std::max(NF, NG) - std::min(NF, NG) + 1;
 
-    xt::xarray<double> out = xt::zeros<double>({n});
+    xt::xarray<double> out = xt::zeros<double>({N});
 
-    for(auto i(0u); i < n; ++i) {
-      for(int j(min_v.size() - 1), k(i); j >= 0; --j, ++k) {
-        out.at(i) += min_v[j] * max_v[k];
+    for(auto i(0u); i < N; ++i) {
+      for(int j(minV.size() - 1), k(i); j >= 0; --j, ++k) {
+        out.at(i) += minV[j] * maxV[k];
       }
     }
 
@@ -59,77 +59,77 @@ public:
   }
 
   static ValidationResults dnn_validate(
-    std::unique_ptr<CxxSDNN::SpikeDNNet> dnn, vl_tr_map<double> folds, std::uint16_t n_epochs, std::uint16_t k_points)
+    std::unique_ptr<cxx_sdnn::SpikeDNNet> dnn, VlTrMap<double> folds, std::uint16_t nEpochs, std::uint16_t kPoints)
   {
     ValidationResults results;
 
     std::cout << *dnn;
 
-    auto tr_target  = folds["tr"].first / 10.;
-    auto tr_control = folds["tr"].second;
+    auto trTarget  = folds["tr"].first / 10.;
+    auto trControl = folds["tr"].second;
 
-    auto vl_target  = folds["vl"].first;
-    auto vl_control = folds["vl"].second;
+    auto vlTarget  = folds["vl"].first;
+    auto vlControl = folds["vl"].second;
 
-    auto target_est = dnn->fit(tr_target, tr_control, 0.0001, n_epochs, k_points);
-    auto vl_pred    = dnn->predict(xt::view(tr_target, -1, 0), vl_control);
+    auto targetEst = dnn->fit(trTarget, trControl, 0.0001, nEpochs, kPoints);
+    auto vlPred    = dnn->predict(xt::view(trTarget, -1, 0), vlControl);
 
-    xt::xarray<double> tr_col     = xt::col(tr_target, 0);
-    xt::xarray<double> target_col = xt::col(target_est, 0);
-    xt::xarray<double> vl_col     = xt::col(vl_target, 0);
-    xt::xarray<double> pred_col   = xt::col(vl_pred, 0);
-    results.mse_res               = std::make_pair(
-      UtilityFunctionLibrary::mean_squared_error<double>(tr_col, target_col),
-      UtilityFunctionLibrary::mean_squared_error<double>(vl_col, pred_col));
+    xt::xarray<double> trCol     = xt::col(trTarget, 0);
+    xt::xarray<double> targetCol = xt::col(targetEst, 0);
+    xt::xarray<double> vlCol     = xt::col(vlTarget, 0);
+    xt::xarray<double> predCol   = xt::col(vlPred, 0);
+    results.mseRes               = std::make_pair(
+      UtilityFunctionLibrary::mean_squared_error<double>(trCol, targetCol),
+      UtilityFunctionLibrary::mean_squared_error<double>(vlCol, predCol));
 
-    results.mae_res = std::make_pair(
-      UtilityFunctionLibrary::mean_absolute_error<double>(tr_col, target_col),
-      UtilityFunctionLibrary::mean_absolute_error<double>(vl_col, pred_col));
+    results.maeRes = std::make_pair(
+      UtilityFunctionLibrary::mean_absolute_error<double>(trCol, targetCol),
+      UtilityFunctionLibrary::mean_absolute_error<double>(vlCol, predCol));
 
-    results.tr_est.emplace_back(target_est);
-    results.vl_res.emplace_back(vl_pred);
-    results.W_1 = dnn->get_weights(0);
-    results.W_2 = dnn->get_weights(1);
-    results.N_1 = dnn->get_neurons_history(0);
-    results.N_2 = dnn->get_neurons_history(1);
+    results.trEst.emplace_back(targetEst);
+    results.vlRes.emplace_back(vlPred);
+    results.w1 = dnn->get_weights(0);
+    results.w2 = dnn->get_weights(1);
+    results.n1 = dnn->get_neurons_history(0);
+    results.n2 = dnn->get_neurons_history(1);
 
     return results;
   }
 
-  template<typename dtype>
-  static double mean_squared_error(xt::xarray<dtype> y_true, xt::xarray<dtype> y_pred)
+  template<typename Dtype>
+  static double mean_squared_error(xt::xarray<Dtype> yTrue, xt::xarray<Dtype> yPred)
   {
-    xt::xarray<dtype> sq = xt::square(y_true - y_pred);
-    auto output_errors   = xt::average(sq);
+    xt::xarray<Dtype> sq = xt::square(yTrue - yPred);
+    auto outputErrors   = xt::average(sq);
 
-    return xt::average(output_errors)();
+    return xt::average(outputErrors)();
   }
 
-  template<typename dtype>
-  static double mean_absolute_error(xt::xarray<dtype> y_true, xt::xarray<dtype> y_pred)
+  template<typename Dtype>
+  static double mean_absolute_error(xt::xarray<Dtype> yTrue, xt::xarray<Dtype> yPred)
   {
-    xt::xarray<dtype> absol = xt::abs(y_pred - y_true);
-    auto output_errors      = xt::average(absol);
+    xt::xarray<Dtype> absol = xt::abs(yPred - yTrue);
+    auto outputErrors      = xt::average(absol);
 
-    return xt::average(output_errors)();
+    return xt::average(outputErrors)();
   }
 
-  static void dumpData(xt::xarray<double> tr_target, xt::xarray<double> tr_control, ValidationResults data)
+  static void dump_data(xt::xarray<double> trTarget, xt::xarray<double> trControl, ValidationResults data)
   {
-    auto error  = xt::abs(xt::col(tr_target, 0) - xt::col(data.tr_est[0], 0));
-    auto wdiff1 = xt::view(data.W_1, xt::all(), xt::all(), 0);
-    auto wdiff2 = xt::view(data.W_2, xt::all(), xt::all(), 0);
+    auto error  = xt::abs(xt::col(trTarget, 0) - xt::col(data.trEst[0], 0));
+    auto wdiff1 = xt::view(data.w1, xt::all(), xt::all(), 0);
+    auto wdiff2 = xt::view(data.w2, xt::all(), xt::all(), 0);
 
     xt::dump_npy("../plot_data/error.npy", xt::degrees(error));
-    xt::dump_npy("../plot_data/control.npy", xt::degrees(tr_control));
-    xt::dump_npy("../plot_data/target.npy", xt::degrees(xt::col(tr_target, 0)));
-    xt::dump_npy("../plot_data/estimation.npy", xt::degrees(xt::col(data.tr_est[0], 0)));
-    xt::dump_npy("../plot_data/target2.npy", xt::degrees(xt::col(tr_target, 1)));
-    xt::dump_npy("../plot_data/estimation2.npy", xt::degrees(xt::col(data.tr_est[0], 1)));
+    xt::dump_npy("../plot_data/control.npy", xt::degrees(trControl));
+    xt::dump_npy("../plot_data/target.npy", xt::degrees(xt::col(trTarget, 0)));
+    xt::dump_npy("../plot_data/estimation.npy", xt::degrees(xt::col(data.trEst[0], 0)));
+    xt::dump_npy("../plot_data/target2.npy", xt::degrees(xt::col(trTarget, 1)));
+    xt::dump_npy("../plot_data/estimation2.npy", xt::degrees(xt::col(data.trEst[0], 1)));
     xt::dump_npy("../plot_data/wdiff1.npy", wdiff1);
     xt::dump_npy("../plot_data/wdiff2.npy", wdiff2);
-    xt::dump_npy("../plot_data/neuro1.npy", data.N_1);
-    xt::dump_npy("../plot_data/neuro2.npy", data.N_2);
+    xt::dump_npy("../plot_data/neuro1.npy", data.n1);
+    xt::dump_npy("../plot_data/neuro2.npy", data.n2);
   }
 
   static double timeit(std::function<void(void)> foo, std::uint32_t count = 1)
@@ -146,12 +146,12 @@ public:
     return std::accumulate(times.begin(), times.end(), 0.) / count;
   }
 
-  static std::unique_ptr<CxxSDNN::SpikeDNNet> make_dnn(
-    std::uint32_t dim, std::unique_ptr<CxxSDNN::AbstractActivation> act_1,
-    std::unique_ptr<CxxSDNN::AbstractActivation> act_2, std::unordered_map<std::string, xt::xarray<double>> kwargs)
+  static std::unique_ptr<cxx_sdnn::SpikeDNNet> make_dnn(
+    std::uint32_t dim, std::unique_ptr<cxx_sdnn::AbstractActivation> act1,
+    std::unique_ptr<cxx_sdnn::AbstractActivation> act2, std::unordered_map<std::string, xt::xarray<double>> kwargs)
   {
-    return std::make_unique<CxxSDNN::SpikeDNNet>(
-      std::move(act_1), std::move(act_2), kwargs["W_1"], kwargs["W_2"], dim, kwargs["A"], kwargs["P"], kwargs["K_1"],
+    return std::make_unique<cxx_sdnn::SpikeDNNet>(
+      std::move(act1), std::move(act2), kwargs["W_1"], kwargs["W_2"], dim, kwargs["A"], kwargs["P"], kwargs["K_1"],
       kwargs["K_2"]);
   }
 };

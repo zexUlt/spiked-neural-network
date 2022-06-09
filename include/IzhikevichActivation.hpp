@@ -2,59 +2,60 @@
 
 #include "AbstractActivation.hpp"
 
-namespace CxxSDNN
+namespace cxx_sdnn
 {
   class IzhikevichActivation : public AbstractActivation {
   public:
     enum class NeuronType
     {
-      RegularSpiking,
-      IntrinsicallyBursting,
-      Chattering,
-      FastSpiking,
-      LowThresholdSpiking,
-      ThalamoCortical63,
-      ThalamoCortical87,
-      Resonator,
-      Custom
+      REGULAR_SPIKING,
+      INTRINSICALLY_BURSTING,
+      CHATTERING,
+      FAST_SPIKING,
+      LOW_THRESHOLD_SPIKING,
+      THALAMO_CORTICAL63,
+      THALAMO_CORTICAL87,
+      RESONATOR,
+      CUSTOM
     };
 
     explicit IzhikevichActivation(
-      double i_scale, double o_scale, double _izh_border, double a, double b, double c, double d, double e,
-      std::vector<size_t> _shape);
+      double iScale, double oScale, double izhBorder, double a, double b, double c, double d, double e,
+      std::vector<size_t> shape);
 
     explicit IzhikevichActivation(
-      double i_scale, double o_scale, double _izh_border, double a, double b, double c, double d, double e);
+      double iScale, double oScale, double izhBorder, double a, double b, double c, double d, double e);
 
-    explicit IzhikevichActivation(double i_scale, double o_scale);
+    explicit IzhikevichActivation(double iScale, double oScale);
 
-    explicit IzhikevichActivation(double _izh_border);
+    explicit IzhikevichActivation(double izhBorder);
 
-    explicit IzhikevichActivation(std::vector<size_t> _shape);
+    explicit IzhikevichActivation(std::vector<size_t> shape);
 
     explicit IzhikevichActivation();
 
     xt::xarray<double> operator()(xt::xarray<double> input, double step) override;
     xt::xarray<double> operator()(xt::xarray<double> input, double step) const override;
     const std::string whoami() const override;
-    void set_type(NeuronType new_type);
+    void set_type(NeuronType newType);
 
   private:
-    double input_scale;
-    double output_scale;
-    double izh_border;
-    double param_a;
-    double param_b;
-    double param_c;
-    double param_d;
-    double param_e;
-    std::vector<size_t> shape;
+    typedef AbstractActivation Super;
+
+    double inputScale;
+    double outputScale;
+    double izhBorder;
+    double paramA;
+    double paramB;
+    double paramC;
+    double paramD;
+    double paramE;
     xt::xarray<double> control;
     xt::xarray<double> state;
-    NeuronType type = NeuronType::Custom;
+    NeuronType type = NeuronType::CUSTOM;
   };
 
-  std::unique_ptr<CxxSDNN::IzhikevichActivation> make_izhikevich(
-    double input_scale, double output_scale, std::vector<size_t> shape, IzhikevichActivation::NeuronType type);
+  std::unique_ptr<cxx_sdnn::IzhikevichActivation> make_izhikevich(
+    double inputScale, double outputScale, std::vector<size_t> shape, IzhikevichActivation::NeuronType type);
 
 }; // namespace CxxSDNN
