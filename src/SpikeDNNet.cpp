@@ -10,12 +10,12 @@
 using cxx_sdnn::SpikeDNNet;
 
 SpikeDNNet::SpikeDNNet(
-  std::unique_ptr<AbstractActivation> actFunc1, std::unique_ptr<AbstractActivation> actFunc2,
-  xt::xarray<double> matW1, xt::xarray<double> matW2, size_t dim, xt::xarray<double> matA,
-  xt::xarray<double> matP, xt::xarray<double> matK1, xt::xarray<double> matK2) :
+  std::unique_ptr<AbstractActivation> actFunc1, std::unique_ptr<AbstractActivation> actFunc2, xt::xarray<double> matW1,
+  xt::xarray<double> matW2, size_t dim, xt::xarray<double> matA, xt::xarray<double> matP, xt::xarray<double> matK1,
+  xt::xarray<double> matK2) :
   afunc1{std::move(actFunc1)},
-  afunc2{std::move(actFunc2)}, matA{matA}, matP{matP}, matK1{matK1}, matK2{matK2},
-  initMatW1{matW1}, initMatW2{matW2}, matDim{dim}
+  afunc2{std::move(actFunc2)}, matA{matA}, matP{matP}, matK1{matK1}, matK2{matK2}, initMatW1{matW1}, initMatW2{matW2},
+  matDim{dim}
 {}
 
 SpikeDNNet::SpikeDNNet(const SpikeDNNet& other) noexcept
@@ -25,18 +25,18 @@ SpikeDNNet::SpikeDNNet(const SpikeDNNet& other) noexcept
 
 SpikeDNNet& SpikeDNNet::operator=(const SpikeDNNet& other) noexcept
 {
-  this->matA          = other.matA;
-  this->matP          = other.matP;
-  this->matK1        = other.matK1;
-  this->matK2        = other.matK2;
-  this->matW1        = other.matW1;
-  this->matW2        = other.matW2;
+  this->matA        = other.matA;
+  this->matP        = other.matP;
+  this->matK1       = other.matK1;
+  this->matK2       = other.matK2;
+  this->matW1       = other.matW1;
+  this->matW2       = other.matW2;
   this->initMatW1   = other.initMatW1;
   this->initMatW2   = other.initMatW2;
   this->arrayHistW1 = other.arrayHistW1;
   this->arrayHistW2 = other.arrayHistW2;
-  this->smoothedW1   = other.smoothedW1;
-  this->smoothedW2   = other.smoothedW2;
+  this->smoothedW1  = other.smoothedW1;
+  this->smoothedW2  = other.smoothedW2;
 
   return *this;
 }
@@ -48,9 +48,9 @@ xt::xarray<double> SpikeDNNet::moving_average(xt::xarray<double> x, std::uint32_
 
 xt::xarray<double> SpikeDNNet::smooth(xt::xarray<double> x, std::uint32_t w)
 {
-  auto l         = x.shape(0);
-  auto m         = x.shape(1);
-  auto n         = x.shape(2);
+  auto l        = x.shape(0);
+  auto m        = x.shape(1);
+  auto n        = x.shape(2);
   auto newSizeZ = l - w + 1u;
 
   xt::xarray<double> newX = xt::ones<double>({newSizeZ, m, n});
@@ -69,7 +69,7 @@ xt::xarray<double> SpikeDNNet::smooth(xt::xarray<double> x, std::uint32_t w)
 xt::xarray<double> SpikeDNNet::fit(
   xt::xarray<double> vecX, xt::xarray<double> vecU, double step, std::uint32_t nEpochs, std::uint32_t kPoints)
 {
-  auto nt                    = vecU.shape(0);
+  auto nt                   = vecU.shape(0);
   xt::xarray<double> vecEst = .01 * xt::ones<double>({nt, this->matDim});
 
   this->matW1 = this->initMatW1;
@@ -93,27 +93,24 @@ xt::xarray<double> SpikeDNNet::fit(
     for(size_t i = 0; i < nt - 1; ++i) {
       xt::xarray<double> currentVecEst = xt::view(vecEst, i);
       xt::xarray<double> currentVecU   = xt::view(vecU, i);
-      xt::xarray<double> currentDelta   = currentVecEst - xt::view(vecX, i);
+      xt::xarray<double> currentDelta  = currentVecEst - xt::view(vecX, i);
 
       auto neuronOut1 = (*this->afunc1)(currentVecEst, 0.01);
       auto neuronOut2 = (*this->afunc2)(currentVecEst, 0.01);
 
       auto vecEstNext = xt::view(vecEst, i + 1); // vec_est[i + 1]
-      DEBUG_WHERE;
-      DEBUG_SHAPE(neuronOut1);
-      DEBUG_SHAPE(matW1);
+
       vecEstNext = xt::eval(
         currentVecEst +
         step * (xt::squeeze(xt::linalg::dot(this->matA, currentVecEst)) +
                 xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1))) +
         xt::linalg::dot(xt::linalg::dot(this->matW2, neuronOut2), currentVecU));
 
-      DEBUG_WHERE;
       // Calculating right-hand sides of dWi/dt
       xt::xarray<double> fxn1 = (xt::linalg::dot(
         xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), currentDelta.reshape({-1, 1})),
         xt::transpose(neuronOut1)));
-      DEBUG_WHERE;
+
       xt::xarray<double> fxn2 = (xt::linalg::dot(
         xt::linalg::dot(
           xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), currentDelta.reshape({-1, 1})),
@@ -123,17 +120,17 @@ xt::xarray<double> SpikeDNNet::fit(
       // Calling activation functions on the next state vector, but without
       // changing their own state This is needed for implicit Runge-Kutta
       // integration method
-      auto constNeuronOut1       = const_cast<decltype(*this->afunc1)>(*this->afunc1)(vecEstNext, 0.01);
-      auto constNeuronOut2       = const_cast<decltype(*this->afunc2)>(*this->afunc2)(vecEstNext, 0.01);
+      auto constNeuronOut1         = const_cast<decltype(*this->afunc1)>(*this->afunc1)(vecEstNext, 0.01);
+      auto constNeuronOut2         = const_cast<decltype(*this->afunc2)>(*this->afunc2)(vecEstNext, 0.01);
       xt::xarray<double> nextDelta = vecEstNext - xt::view(vecX, i + 1);
-      xt::xarray<double> nextVecU = xt::view(vecU, i + 1);
-      DEBUG_WHERE;
+      xt::xarray<double> nextVecU  = xt::view(vecU, i + 1);
+
       // Calculating the right-hand side of dWi/dt
       // On the next sample
       xt::xarray<double> fxnp1 = (xt::linalg::dot(
         xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), nextDelta.reshape({-1, 1})),
         xt::transpose(constNeuronOut1)));
-      DEBUG_WHERE;
+
       xt::xarray<double> fxnp2 = (xt::linalg::dot(
         xt::linalg::dot(
           xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), nextDelta.reshape({-1, 1})),
@@ -165,7 +162,7 @@ xt::xarray<double> SpikeDNNet::fit(
 
 xt::xarray<double> SpikeDNNet::predict(xt::xarray<double> initState, xt::xarray<double> vecU, double step)
 {
-  auto nt                    = vecU.shape(0);
+  auto nt                   = vecU.shape(0);
   xt::xarray<double> vecEst = initState * xt::ones<double>({nt, this->matDim});
 
   auto w1 = xt::view(this->smoothedW1, -1);
@@ -179,9 +176,9 @@ xt::xarray<double> SpikeDNNet::predict(xt::xarray<double> initState, xt::xarray<
     auto neuron2Out = this->afunc2->operator()(curEst);
 
     auto vecEstNext = xt::view(vecEst, i + 1);
-    vecEstNext      = curEst + step * (xt::squeeze(xt::linalg::dot(this->matA, curEst)) +
-                                     xt::squeeze(xt::linalg::dot(w1, neuron1Out)) +
-                                     xt::linalg::dot(xt::linalg::dot(w2, neuron2Out), curU));
+    vecEstNext =
+      curEst + step * (xt::squeeze(xt::linalg::dot(this->matA, curEst)) + xt::squeeze(xt::linalg::dot(w1, neuron1Out)) +
+                       xt::linalg::dot(xt::linalg::dot(w2, neuron2Out), curU));
   }
 
   return vecEst;
