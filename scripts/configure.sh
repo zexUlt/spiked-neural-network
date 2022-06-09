@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd ../
+
 RECONFIG=0
 CMAKE_PARAMETERS=()
 
@@ -20,10 +22,10 @@ while [[ $# -gt 0 ]]; do
             CMAKE_PARAMETERS+=( $1 )
             shift
             ;; 
-        -*|--*)
-            echo "Unknown option $1"
-            exit 1
-            ;;
+        # -*|--*)
+        #     echo "Unknown option $1"
+        #     exit 1
+        #     ;;
     esac
 done
 
@@ -32,6 +34,6 @@ if [[ ${RECONFIG} -eq 1 ]]; then
     rm -r ./build
 fi
 
-echo "CMAKE_PARAMETERS = [$CMAKE_PARAMETERS]"
+echo "CMAKE_PARAMETERS = [${CMAKE_PARAMETERS[@]}]"
 echo "Building..."
 cmake $CMAKE_PARAMETERS -S . -B ./build 

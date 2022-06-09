@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+PATH_PREFIX = "./plots/"
 
 plt.rcParams.update({
         "text.usetex" : True,
@@ -170,8 +171,8 @@ axs3[0].legend([r'$\displaystyle W_2$'])
 
 
 plt.tight_layout()
-fig1.savefig("estimation.png")
-fig2.savefig("w1_dyn.png")
-fig3.savefig("w2_dyn.png")
+fig1.savefig(PATH_PREFIX + "estimation.png")
+fig2.savefig(PATH_PREFIX + "w1_dyn.png")
+fig3.savefig(PATH_PREFIX + "w2_dyn.png")
 # fig3.savefig("articl_plot_3.png")
-fig4.savefig("experiment_begin.png")
+fig4.savefig(PATH_PREFIX + "experiment_begin.png")
