@@ -1,6 +1,5 @@
 #!/bin/bash
 
-cd ../
 
 RECONFIG=0
 CMAKE_PARAMETERS=()
