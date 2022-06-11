@@ -1,4 +1,8 @@
 ---
-Checks: hicpp-no-assembler # Just to override the parent config
+Checks: -*
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+FormatStyle:     'None'
+User:            zexult
 ...
-
