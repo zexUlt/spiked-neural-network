@@ -9,6 +9,11 @@ include(cmake/clang-cxx-dev-tools.cmake)
 message(STATUS "Set build type to ${CMAKE_BUILD_TYPE}")
 
 # =======================================
+#      ENABLING COMPILE COMMANDS EXPORT FOR CLANG-TIDY
+# =======================================
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# =======================================
 #      ENABLING TIME MEASUREMENT DISPLAY
 # =======================================
 set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
