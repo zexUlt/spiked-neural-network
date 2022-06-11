@@ -5,7 +5,7 @@ Checks:         bugprone-argument-comment,bugprone-copy-constructor-init,bugpron
                 bugprone-suspicious-semicolon,readability-identifier-naming,>-
                 clang-analyzer-*
 WarningsAsErrors: ''
-HeaderFilterRegex: '^(include|src)*'
+HeaderFilterRegex: '*((include)|(src)[:upper:].*)|(main)'
 AnalyzeTemporaryDtors: false
 FormatStyle:     'None'
 User:            zexult
