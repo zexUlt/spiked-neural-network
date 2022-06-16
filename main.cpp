@@ -46,8 +46,20 @@ int main(int argc, char** argv)
   // auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(55, 1/40., {2*dim, tr_control.shape(1)},
   // Izhi::NeuronType::ThalamoCortical63);
 
-  auto act1 = std::make_unique<cxx_sdnn::SigmoidActivation>(/*shape=*/std::vector<size_t>{dim, 1});
-  auto act2 = std::make_unique<cxx_sdnn::SigmoidActivation>(/*shape=*/std::vector<size_t>{dim, trControl.shape(1)});
+  auto act1 = std::make_unique<cxx_sdnn::SigmoidActivation>(
+    /*shape=*/std::vector<size_t>{dim, 1}, 
+    /*a =*/1., 
+    /*b =*/1., 
+    /*c =*/.02, 
+    /*d =*/-.02
+  );
+  auto act2 = std::make_unique<cxx_sdnn::SigmoidActivation>(
+    /*shape=*/std::vector<size_t>{dim, trControl.shape(1)},
+    /*a =*/1., 
+    /*b =*/1., 
+    /*c =*/.02, 
+    /*d =*/-.02
+  );
 
   auto model = UtilityFunctionLibrary::make_dnn(dim, std::move(act1), std::move(act2), modelParams);
 
