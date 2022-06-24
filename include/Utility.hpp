@@ -147,11 +147,11 @@ public:
   }
 
   static std::unique_ptr<cxx_sdnn::SpikeDNNet> make_dnn(
-    std::uint32_t dim, std::unique_ptr<cxx_sdnn::AbstractActivation> act1,
+    double alpha, std::uint32_t dim, std::unique_ptr<cxx_sdnn::AbstractActivation> act1,
     std::unique_ptr<cxx_sdnn::AbstractActivation> act2, std::unordered_map<std::string, xt::xarray<double>> kwargs)
   {
     return std::make_unique<cxx_sdnn::SpikeDNNet>(
       std::move(act1), std::move(act2), kwargs["W_1"], kwargs["W_2"], dim, kwargs["A"], kwargs["P"], kwargs["K_1"],
-      kwargs["K_2"]);
+      kwargs["K_2"], alpha);
   }
 };
