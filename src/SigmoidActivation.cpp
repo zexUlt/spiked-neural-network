@@ -30,6 +30,7 @@ const std::string SigmoidActivation::whoami() const
   out += "b = " + std::to_string(this->paramB) + "\n";
   out += "c = " + std::to_string(this->paramC) + "\n";
   out += "d = " + std::to_string(this->paramD) + "\n";
+  out += "e = " + std::to_string(this->paramE) + "\n";
 
   return out;
 }
