@@ -22,6 +22,7 @@ namespace cxx_sdnn
     xt::xarray<double> initMatW1;
     xt::xarray<double> initMatW2;
     size_t matDim;
+    double alpha;
 
     xt::xarray<double> matW1;
     xt::xarray<double> matW2;
@@ -39,7 +40,8 @@ namespace cxx_sdnn
       xt::xarray<double> matA  = 20. * xt::diag(xt::xarray<double>({-1., -2.})),
       xt::xarray<double> matP  = 1575.9 * xt::diag(xt::xarray<double>({60., 40.})),
       xt::xarray<double> matK1 = .15 * xt::diag(xt::xarray<double>({10., 1.})),
-      xt::xarray<double> matK2 = .15 * xt::diag(xt::xarray<double>({1., 1.})));
+      xt::xarray<double> matK2 = .15 * xt::diag(xt::xarray<double>({1., 1.})),
+      double alpha = 1.);
 
     SpikeDNNet(const SpikeDNNet& other) noexcept;
 
@@ -69,26 +71,23 @@ namespace cxx_sdnn
 
     friend std::ostream& operator<<(std::ostream& out, const SpikeDNNet& dnn)
     {
-      out << "\tSDNN model.\n";
-      out << "\n=================================\n";
-      out << "\tConfiguration: \n";
-      out << "\t\tA =\n" << dnn.get_A() << '\n';
-      out << "\t\tP =\n" << dnn.get_P() << '\n';
-      out << "\t\tW10 =\n" << dnn.get_W10() << '\n';
-      out << "\t\tW20 =\n" << dnn.get_W20() << '\n';
-      out << "\t\tK1 =\n" << dnn.get_K1() << '\n';
-      out << "\t\tK2 =\n" << dnn.get_K2() << '\n';
-      out << "\n=================================\n\n";
-      out << "\tFirst activation component: \n" << dnn.get_afunc_descr(0) << '\n';
-      out << "\n=================================\n\n";
-      out << "\tSecond activation component: \n" << dnn.get_afunc_descr(1) << '\n';
-      out << "\t\t\n=================================\n\n\n";
+      out << "SDNN model.\n\n";
+      out << "=================================\n";
+      out << "Configuration:\n\n";
+      out << "Alpha = " << dnn.alpha << '\n';
+      out << "A:\n" << dnn.get_A() << "\n\n";
+      out << "P:\n" << dnn.get_P() << "\n\n";
+      out << "W10:\n" << dnn.get_W10() << "\n\n";
+      out << "W20:\n" << dnn.get_W20() << "\n\n";
+      out << "K1:\n" << dnn.get_K1() << "\n\n";
+      out << "K2:\n" << dnn.get_K2() << "\n\n";
+      out << "=================================\n\n";
+      out << "First activation component:\n\n" << dnn.get_afunc_descr(0) << "\n\n";
+      out << "=================================\n\n";
+      out << "Second activation component:\n\n" << dnn.get_afunc_descr(1) << '\n';
+      out << "=================================\n\n\n";
 
       return out;
     }
   };
-
-  // std::unique_ptr<SpikeDNNet> make_dnn(
-  //   std::uint32_t dim, std::unique_ptr<AbstractActivation> act_1, std::unique_ptr<AbstractActivation> act_2,
-  //   std::unordered_map<std::string, xt::xarray<double>> kwargs);
 }; // namespace cxx_sdnn

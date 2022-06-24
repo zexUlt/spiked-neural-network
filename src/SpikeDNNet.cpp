@@ -12,10 +12,10 @@ using cxx_sdnn::SpikeDNNet;
 SpikeDNNet::SpikeDNNet(
   std::unique_ptr<AbstractActivation> actFunc1, std::unique_ptr<AbstractActivation> actFunc2, xt::xarray<double> matW1,
   xt::xarray<double> matW2, size_t dim, xt::xarray<double> matA, xt::xarray<double> matP, xt::xarray<double> matK1,
-  xt::xarray<double> matK2) :
+  xt::xarray<double> matK2, double _alpha) :
   afunc1{std::move(actFunc1)},
   afunc2{std::move(actFunc2)}, matA{matA}, matP{matP}, matK1{matK1}, matK2{matK2}, initMatW1{matW1}, initMatW2{matW2},
-  matDim{dim}
+  matDim{dim}, alpha{_alpha}
 {}
 
 SpikeDNNet::SpikeDNNet(const SpikeDNNet& other) noexcept
@@ -72,6 +72,9 @@ xt::xarray<double> SpikeDNNet::fit(
   auto nt                   = vecU.shape(0);
   xt::xarray<double> vecEst = .01 * xt::ones<double>({nt, this->matDim});
 
+  xt::xarray<double> matWTr1 = xt::ones<double>(this->matW1.shape());
+  xt::xarray<double> matWTr2 = xt::ones<double>(this->matW2.shape());
+
   this->matW1 = this->initMatW1;
   this->matW2 = this->initMatW2;
 
@@ -91,6 +94,9 @@ xt::xarray<double> SpikeDNNet::fit(
     if(e > 1) {
       this->matW1 = xt::view(this->smoothedW1, -1);
       this->matW2 = xt::view(this->smoothedW2, -1);
+
+      matWTr1 = xt::view(this->smoothedW1, -1);
+      matWTr2 = xt::view(this->smoothedW2, -1);
 
       xt::view(this->arrayHistW1, 0).assign(this->matW1);
       xt::view(this->arrayHistW2, 0).assign(this->matW2);
@@ -112,16 +118,19 @@ xt::xarray<double> SpikeDNNet::fit(
                 xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1)) +
         xt::linalg::dot(xt::linalg::dot(this->matW2, neuronOut2), currentVecU)));
 
+      xt::xarray<double> matWTilde1 = matWTr1 - this->matW1;
+      xt::xarray<double> matWTilde2 = matWTr2 - this->matW2;
+
       // Calculating right-hand sides of dWi/dt
       xt::xarray<double> rhsW1 = -xt::linalg::dot(
         xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), currentDelta.reshape({-1, 1})), // (4, ) -> (4, 1)
-        xt::transpose(neuronOut1));
+        xt::transpose(neuronOut1)) + this->alpha * matWTilde1;
 
       xt::xarray<double> rhsW2 = -xt::linalg::dot(
         xt::linalg::dot(
           xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), currentDelta.reshape({-1, 1})),
           currentVecU.reshape({1, -1})),
-        xt::transpose(neuronOut2));
+        xt::transpose(neuronOut2)) + this->alpha * matWTilde2;
 
       // Calling activation functions on the next state vector, but without
       // changing their own state. This is needed for implicit Runge-Kutta
@@ -131,23 +140,24 @@ xt::xarray<double> SpikeDNNet::fit(
       xt::xarray<double> nextDelta = vecEstNext - xt::view(vecX, i + 1);
       xt::xarray<double> nextVecU  = xt::view(vecU, i + 1);
 
+      // Prediction
+      xt::xarray<double> predictedW1 = this->matW1 - step * rhsW1;
+      xt::xarray<double> predictedW2 = this->matW2 - step * rhsW2;
+
       // Calculating the right-hand side of dWi/dt
-      // On the next sample
+      // On the next sample 
+      matWTilde1 = matWTr1 - predictedW1;
+      matWTilde2 = matWTr2 - predictedW2;
+
       xt::xarray<double> rhsW1NextStep = -xt::linalg::dot(
         xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), nextDelta.reshape({-1, 1})),
-        xt::transpose(constNeuronOut1));
+        xt::transpose(constNeuronOut1)) + this->alpha * matWTilde1;
 
       xt::xarray<double> rhsW2NextStep = -xt::linalg::dot(
         xt::linalg::dot(
           xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), nextDelta.reshape({-1, 1})),
           nextVecU.reshape({1, -1})),
-        xt::transpose(constNeuronOut2));
-
-      // Prediction
-      // No need in prediction stage since right-hand side does not
-      // depend on Wi 
-      // xt::xarray<double> predictedW1 = this->matW1 - step * rhsW1;
-      // xt::xarray<double> predictedW2 = this->matW2 - step * rhsW2;
+        xt::transpose(constNeuronOut2)) + this->alpha * matWTilde2;
 
       // Correction
       this->matW1 = this->matW1 + step * (rhsW1 + rhsW1NextStep) / 2.;
