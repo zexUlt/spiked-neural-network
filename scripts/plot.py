@@ -65,12 +65,12 @@ axs1[1].plot(time,
         lw='2')
 
 axs2[0].plot(time[:-1],
-        np.abs(wdiff1[:, 0][:3303]),
+        wdiff1[:, 0][:3303],
         color=(165/255, 172/255, 175/255),
         lw='2')
 
 axs3[0].plot(time[:-1],
-        np.abs(wdiff2[:, 1][:3303]),
+        wdiff2[:, 1][:3303],
         color='tab:blue',
         lw='2')
 

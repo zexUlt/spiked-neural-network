@@ -1,4 +1,4 @@
 #!/bin/sh
 
-python plot.py
+python ./scripts/plot.py
 echo "Plots generated!"
