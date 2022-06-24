@@ -117,8 +117,8 @@ public:
   static void dump_data(xt::xarray<double> trTarget, xt::xarray<double> trControl, ValidationResults data)
   {
     auto error  = xt::abs(xt::col(trTarget, 0) - xt::col(data.trEst[0], 0));
-    auto wdiff1 = xt::view(data.w1, xt::all(), xt::all(), 0);
-    auto wdiff2 = xt::view(data.w2, xt::all(), xt::all(), 0);
+    auto wdiff1 = xt::view(data.w1, xt::all(), xt::all(), 1);
+    auto wdiff2 = xt::view(data.w2, xt::all(), xt::all(), 1);
 
     xt::dump_npy("../plot_data/error.npy", xt::degrees(error));
     xt::dump_npy("../plot_data/control.npy", xt::degrees(trControl));
