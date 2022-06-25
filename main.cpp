@@ -3,7 +3,6 @@
 #include "SpikeDNNet.hpp"
 #include "Utility.hpp"
 #include "debug_header.hpp"
-
 #include "precompiled.hpp"
 
 int main(int argc, char** argv)
@@ -24,11 +23,12 @@ int main(int argc, char** argv)
 
   // const std::uint32_t width    = 4394u;
   // const std::int32_t split     = 3305;
-  const std::uint32_t N_EPOCHS = 2u;
-  const std::uint32_t K_POINTS = 3u;
+  const std::uint32_t N_EPOCHS  = 2u;
+  const std::uint32_t K_POINTS  = 3u;
+  const double ALPHA            = 1.5;
+  const double INTEGRATION_STEP = 0.0001;
 
   std::uint32_t dim = trTarget.shape(1);
-  const double ALPHA = 1.5;
 
   std::unordered_map<std::string, xt::xarray<double>> modelParams{
     {"W_1", 1000. * xt::ones<double>({dim, dim})},
@@ -43,23 +43,22 @@ int main(int argc, char** argv)
   // Izhi::NeuronType::ThalamoCortical63);
 
   auto act1 = std::make_unique<cxx_sdnn::SigmoidActivation>(
-    /*shape=*/std::vector<size_t>{dim, 1}, 
-    /*a =*/1., 
-    /*b =*/1., 
-    /*c =*/1, 
+    /*shape=*/std::vector<size_t>{dim, 1},
+    /*a =*/1.,
+    /*b =*/1.,
+    /*c =*/1,
     /*d =*/-1,
-    /*e =*/-0.5
-  );
+    /*e =*/-0.5);
   auto act2 = std::make_unique<cxx_sdnn::SigmoidActivation>(
     /*shape=*/std::vector<size_t>{dim, trControl.shape(1)},
-    /*a =*/1., 
-    /*b =*/1., 
-    /*c =*/1., 
+    /*a =*/1.,
+    /*b =*/1.,
+    /*c =*/1.,
     /*d =*/-1,
-    /*e =*/-0.5
-  );
+    /*e =*/-0.5);
 
-  auto model = UtilityFunctionLibrary::make_dnn(ALPHA, dim, std::move(act1), std::move(act2), modelParams);
+  auto model =
+    UtilityFunctionLibrary::make_dnn(ALPHA, dim, std::move(act1), std::move(act2), modelParams, INTEGRATION_STEP);
 
   UtilityFunctionLibrary::VlTrMap<double> folds{{"tr", {trTarget, trControl}}, {"vl", {vlTarget, vlControl}}};
 
