@@ -4,13 +4,7 @@
 #include "SpikeDNNet.hpp"
 #include "debug_header.hpp"
 
-#include "xtensor-blas/xlinalg.hpp"
-#include "xtensor/xnpy.hpp"
-#include "xtensor/xview.hpp"
-
-#include <chrono>
-#include <map>
-#include <string>
+#include "precompiled.hpp"
 
 class UtilityFunctionLibrary {
 public:
@@ -102,7 +96,7 @@ public:
     xt::xarray<Dtype> sq = xt::square(yTrue - yPred);
     auto outputErrors    = xt::average(sq);
 
-    return xt::average(outputErrors)();
+    return outputErrors();
   }
 
   template<typename Dtype>
@@ -111,7 +105,7 @@ public:
     xt::xarray<Dtype> absol = xt::abs(yPred - yTrue);
     auto outputErrors       = xt::average(absol);
 
-    return xt::average(outputErrors)();
+    return outputErrors();
   }
 
   static void dump_data(xt::xarray<double> trTarget, xt::xarray<double> trControl, ValidationResults data)
@@ -119,6 +113,8 @@ public:
     auto error  = xt::abs(xt::col(trTarget, 0) - xt::col(data.trEst[0], 0));
     auto wdiff1 = xt::view(data.w1, xt::all(), xt::all(), 1);
     auto wdiff2 = xt::view(data.w2, xt::all(), xt::all(), 1);
+
+    std::cout << "Error: " << xt::average(error) << "\n";
 
     xt::dump_npy("../plot_data/error.npy", xt::degrees(error));
     xt::dump_npy("../plot_data/control.npy", xt::degrees(trControl));

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <vector>
-#include <xtensor/xarray.hpp>
+#include "precompiled.hpp"
 
 namespace cxx_sdnn
 {

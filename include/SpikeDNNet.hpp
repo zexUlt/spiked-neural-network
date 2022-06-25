@@ -1,11 +1,6 @@
 #pragma once
 
-#include "xtensor/xarray.hpp"
-#include "xtensor/xio.hpp"
-
-#include <memory>
-#include <string>
-#include <unordered_map>
+#include "precompiled.hpp"
 
 namespace cxx_sdnn
 {

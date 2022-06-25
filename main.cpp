@@ -4,12 +4,7 @@
 #include "Utility.hpp"
 #include "debug_header.hpp"
 
-#include <fstream>
-#include <istream>
-#include <string>
-#include <unordered_map>
-#include <xtensor/xarray.hpp>
-#include <xtensor/xio.hpp>
+#include "precompiled.hpp"
 
 int main(int argc, char** argv)
 {
@@ -29,19 +24,19 @@ int main(int argc, char** argv)
 
   // const std::uint32_t width    = 4394u;
   // const std::int32_t split     = 3305;
-  const std::uint32_t N_EPOCHS = 1u;
+  const std::uint32_t N_EPOCHS = 2u;
   const std::uint32_t K_POINTS = 3u;
 
   std::uint32_t dim = trTarget.shape(1);
   const double ALPHA = 1.5;
 
   std::unordered_map<std::string, xt::xarray<double>> modelParams{
-    {"W_1", 1. * xt::ones<double>({dim, dim})},
-    {"W_2", 1. * xt::ones<double>({dim, dim})},
-    {"A", 3337 * xt::diag(xt::xarray<double>{-1., -1., -1., -1.})},
-    {"P", 162 * xt::diag(xt::xarray<double>{1., 1., 1., 1.})},
-    {"K_1", 1 * xt::diag(xt::xarray<double>{1., 1., 1., 1.})},
-    {"K_2", 0.9 * xt::diag(xt::xarray<double>{1., 1., 1., 1.})}};
+    {"W_1", 1000. * xt::ones<double>({dim, dim})},
+    {"W_2", 1000. * xt::ones<double>({dim, dim})},
+    {"A", 10000 * xt::diag(xt::xarray<double>{-1., -1., -1., -1.})},
+    {"P", 9000 * xt::diag(xt::xarray<double>{1., 1., 1., 1.})},
+    {"K_1", 3000 * xt::diag(xt::xarray<double>{1., 1., 1., 1.})},
+    {"K_2", 1000 * xt::diag(xt::xarray<double>{1., 1., 1., 1.})}};
 
   // auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(50, 1/40., {2*dim, 1}, Izhi::NeuronType::Resonator);
   // auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(55, 1/40., {2*dim, tr_control.shape(1)},
