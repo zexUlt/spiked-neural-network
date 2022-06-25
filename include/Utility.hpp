@@ -3,7 +3,6 @@
 #include "IzhikevichActivation.hpp"
 #include "SpikeDNNet.hpp"
 #include "debug_header.hpp"
-
 #include "precompiled.hpp"
 
 class UtilityFunctionLibrary {
