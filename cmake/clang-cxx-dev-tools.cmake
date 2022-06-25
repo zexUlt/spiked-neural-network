@@ -13,14 +13,14 @@ if(CLANG_TIDY)
             COMMAND /usr/bin/clang-tidy
             --fix
             -p=${PROJECT_SOURCE_DIR}/build
-            --extra-arg=-std=c++17
+            --extra-arg=-std=c++14
             ${ALL_CXX_SOURCE_FILES} ${PROJECT_SOURCE_DIR}/main.cpp
         )
     else()
         add_custom_target(clang-tidy
             COMMAND /usr/bin/clang-tidy
             -p=${PROJECT_SOURCE_DIR}/build
-            --extra-arg=-std=c++17
+            --extra-arg=-std=c++14
             ${ALL_CXX_SOURCE_FILES} ${PROJECT_SOURCE_DIR}/main.cpp
             )
     endif()
