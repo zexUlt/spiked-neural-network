@@ -35,8 +35,7 @@ namespace cxx_sdnn
       xt::xarray<double> matA  = 20. * xt::diag(xt::xarray<double>({-1., -2.})),
       xt::xarray<double> matP  = 1575.9 * xt::diag(xt::xarray<double>({60., 40.})),
       xt::xarray<double> matK1 = .15 * xt::diag(xt::xarray<double>({10., 1.})),
-      xt::xarray<double> matK2 = .15 * xt::diag(xt::xarray<double>({1., 1.})),
-      double alpha = 1.);
+      xt::xarray<double> matK2 = .15 * xt::diag(xt::xarray<double>({1., 1.})), double alpha = 1.);
 
     SpikeDNNet(const SpikeDNNet& other) noexcept;
 
