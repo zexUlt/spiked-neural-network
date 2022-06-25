@@ -26,14 +26,8 @@ fig1, axs1 = plt.subplots(2, 1, figsize=(16, 8))
 fig2, axs2 = plt.subplots(2, 1, figsize=(16, 8))
 fig3, axs3 = plt.subplots(2, 1, figsize=(16, 8))
 fig4, axs4 = plt.subplots(2, 1, figsize=(16, 8))
+fig5, axs5 = plt.subplots(1, 1, figsize=(16, 8))
 
-# axs1.plot(time,
-#         tr_control[:, 1],
-#         lw='2')
-
-# axs1.plot(time,
-#         tr_control[:, 2],
-#         lw='2')
 
 axs1[0].scatter(time,
         tr_target,
@@ -46,11 +40,6 @@ axs1[0].plot(time,
         tr_est,
         color='tab:blue',
         lw='2')
-
-# axs1.plot(time,
-#         error,
-#         color='tab:blue',
-#         lw='2')
 
 axs1[1].scatter(time,
         tr_target_2,
@@ -113,6 +102,11 @@ axs4[1].plot(time[:500],
         color='tab:blue',
         lw='2')
 
+axs5.plot(time,
+        error,
+        color='tab:blue',
+        lw='2')
+
 axs4[0].plot(time[0], tr_est[0], 'o', color='tab:orange', label='_nolegend_')
 axs4[0].annotate(r"$\displaystyle \hat{\zeta}(0) = " + "{:.4f}".format(tr_est[0]) + "$", 
                 xycoords='data',
@@ -171,8 +165,9 @@ axs3[0].legend([r'$\displaystyle W_2$'])
 
 
 plt.tight_layout()
-fig1.savefig(PATH_PREFIX + "estimation.png")
-fig2.savefig(PATH_PREFIX + "w1_dyn.png")
-fig3.savefig(PATH_PREFIX + "w2_dyn.png")
+fig1.savefig(f"{PATH_PREFIX}/estimation.png")
+fig2.savefig(f"{PATH_PREFIX}/w1_dyn.png")
+fig3.savefig(f"{PATH_PREFIX}/w2_dyn.png")
 # fig3.savefig("articl_plot_3.png")
-fig4.savefig(PATH_PREFIX + "experiment_begin.png")
+fig4.savefig(f"{PATH_PREFIX}/experiment_begin.png")
+fig5.savefig(f"{PATH_PREFIX}/error.png")
