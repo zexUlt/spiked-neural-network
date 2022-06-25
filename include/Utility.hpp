@@ -52,7 +52,8 @@ public:
   }
 
   static ValidationResults dnn_validate(
-    std::unique_ptr<cxx_sdnn::SpikeDNNet> dnn, VlTrMap<double> folds, std::uint16_t nEpochs, std::uint16_t kPoints)
+    std::unique_ptr<cxx_sdnn::SpikeDNNet> dnn, VlTrMap<double> folds, std::uint16_t nEpochs, std::uint16_t kPoints,
+    double step = 0.01)
   {
     ValidationResults results;
 
@@ -64,7 +65,7 @@ public:
     auto vlTarget  = folds["vl"].first;
     auto vlControl = folds["vl"].second;
 
-    auto targetEst = dnn->fit(trTarget, trControl, 0.0001, nEpochs, kPoints);
+    auto targetEst = dnn->fit(trTarget, trControl, step, nEpochs, kPoints);
     auto vlPred    = dnn->predict(xt::view(trTarget, -1, 0), vlControl);
 
     xt::xarray<double> trCol     = xt::col(trTarget, 0);
@@ -113,7 +114,7 @@ public:
     auto wdiff1 = xt::view(data.w1, xt::all(), xt::all(), 1);
     auto wdiff2 = xt::view(data.w2, xt::all(), xt::all(), 1);
 
-    std::cout << "Error: " << xt::average(error) << "\n";
+    std::cout << "Error: " << xt::average(error)() << "\n";
 
     xt::dump_npy("../plot_data/error.npy", xt::degrees(error));
     xt::dump_npy("../plot_data/control.npy", xt::degrees(trControl));
