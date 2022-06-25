@@ -24,7 +24,11 @@ set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CMAKE_COMMAND} -E time")
 #      SETTING UP COMPILE OPTIONS
 # =======================================
 # add_compile_options(-Wall)
-add_compile_options(-Winvalid-pch -Wunused)
+add_compile_options(
+    "${CMAKE_CXX_FLAGS}" 
+    "-Winvalid-pch" 
+    "-Wunused"
+)
 # =======================================
 
 # =======================================
@@ -152,10 +156,6 @@ target_link_libraries(${PROJECT_NAME}
 # =======================================
 target_precompile_headers(${PROJECT_NAME}
     PRIVATE
-        <istream>
-        <fstream>
-        <unordered_map>
-        <string>
-        <vector>
+        ${SOURCE_INCLUDE_DIR}/precompiled.hpp
 )
 # =======================================
