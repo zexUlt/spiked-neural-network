@@ -113,24 +113,27 @@ xt::xarray<double> SpikeDNNet::fit(
       auto vecEstNext = xt::view(vecEst, i + 1); // vec_est[i + 1]
 
       vecEstNext = xt::eval(
-        currentVecEst +
-        step * (xt::squeeze(xt::linalg::dot(this->matA, currentVecEst)) +
-                xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1)) +
-        xt::linalg::dot(xt::linalg::dot(this->matW2, neuronOut2), currentVecU)));
+        currentVecEst + step * (xt::squeeze(xt::linalg::dot(this->matA, currentVecEst)) +
+                                xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1)) +
+                                xt::linalg::dot(xt::linalg::dot(this->matW2, neuronOut2), currentVecU)));
 
       xt::xarray<double> matWTilde1 = matWTr1 - this->matW1;
       xt::xarray<double> matWTilde2 = matWTr2 - this->matW2;
 
       // Calculating right-hand sides of dWi/dt
-      xt::xarray<double> rhsW1 = -xt::linalg::dot(
-        xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), currentDelta.reshape({-1, 1})), // (4, ) -> (4, 1)
-        xt::transpose(neuronOut1)) + this->alpha * matWTilde1;
+      xt::xarray<double> rhsW1 =
+        -xt::linalg::dot(
+          xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), currentDelta.reshape({-1, 1})), // (4, ) -> (4, 1)
+          xt::transpose(neuronOut1)) +
+        this->alpha * matWTilde1;
 
-      xt::xarray<double> rhsW2 = -xt::linalg::dot(
-        xt::linalg::dot(
-          xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), currentDelta.reshape({-1, 1})),
-          currentVecU.reshape({1, -1})),
-        xt::transpose(neuronOut2)) + this->alpha * matWTilde2;
+      xt::xarray<double> rhsW2 =
+        -xt::linalg::dot(
+          xt::linalg::dot(
+            xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), currentDelta.reshape({-1, 1})),
+            currentVecU.reshape({1, -1})),
+          xt::transpose(neuronOut2)) +
+        this->alpha * matWTilde2;
 
       // Calling activation functions on the next state vector, but without
       // changing their own state. This is needed for implicit Runge-Kutta
@@ -145,19 +148,23 @@ xt::xarray<double> SpikeDNNet::fit(
       xt::xarray<double> predictedW2 = this->matW2 - step * rhsW2;
 
       // Calculating the right-hand side of dWi/dt
-      // On the next sample 
+      // On the next sample
       matWTilde1 = matWTr1 - predictedW1;
       matWTilde2 = matWTr2 - predictedW2;
 
-      xt::xarray<double> rhsW1NextStep = -xt::linalg::dot(
-        xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), nextDelta.reshape({-1, 1})),
-        xt::transpose(constNeuronOut1)) + this->alpha * matWTilde1;
+      xt::xarray<double> rhsW1NextStep =
+        -xt::linalg::dot(
+          xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), nextDelta.reshape({-1, 1})),
+          xt::transpose(constNeuronOut1)) +
+        this->alpha * matWTilde1;
 
-      xt::xarray<double> rhsW2NextStep = -xt::linalg::dot(
-        xt::linalg::dot(
-          xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), nextDelta.reshape({-1, 1})),
-          nextVecU.reshape({1, -1})),
-        xt::transpose(constNeuronOut2)) + this->alpha * matWTilde2;
+      xt::xarray<double> rhsW2NextStep =
+        -xt::linalg::dot(
+          xt::linalg::dot(
+            xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), nextDelta.reshape({-1, 1})),
+            nextVecU.reshape({1, -1})),
+          xt::transpose(constNeuronOut2)) +
+        this->alpha * matWTilde2;
 
       // Correction
       this->matW1 = this->matW1 + step * (rhsW1 + rhsW1NextStep) / 2.;

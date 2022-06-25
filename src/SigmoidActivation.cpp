@@ -9,15 +9,19 @@ SigmoidActivation::SigmoidActivation(std::vector<size_t> shape, double a, double
 xt::xarray<double> SigmoidActivation::operator()(xt::xarray<double> input, double step = -1.)
 {
   return this->paramA /
-         (this->paramB +
-          this->paramC * xt::exp(this->paramD * (xt::broadcast(input.reshape({this->shape[0], 1}), this->shape) - 4.))) + this->paramE;
+           (this->paramB +
+            this->paramC *
+              xt::exp(this->paramD * (xt::broadcast(input.reshape({this->shape[0], 1}), this->shape) - 4.))) +
+         this->paramE;
 }
 
 xt::xarray<double> SigmoidActivation::operator()(xt::xarray<double> input, double step = -1.) const
 {
   return this->paramA /
-         (this->paramB +
-          this->paramC * xt::exp(this->paramD * (xt::broadcast(input.reshape({this->shape[0], 1}), this->shape) - 4.))) + this->paramE;
+           (this->paramB +
+            this->paramC *
+              xt::exp(this->paramD * (xt::broadcast(input.reshape({this->shape[0], 1}), this->shape) - 4.))) +
+         this->paramE;
 }
 
 const std::string SigmoidActivation::whoami() const
