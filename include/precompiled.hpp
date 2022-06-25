@@ -1,7 +1,7 @@
 #pragma once 
 
 #include <vector>
-#include <xtensor/xarray.hpp>
+#include "xtensor/xarray.hpp"
 
 #include "xtensor-blas/xlinalg.hpp"
 #include "xtensor/xnpy.hpp"
@@ -14,4 +14,4 @@
 #include <istream>
 #include <unordered_map>
 #include <memory>
-#include <xtensor/xio.hpp>
+#include "xtensor/xio.hpp"
