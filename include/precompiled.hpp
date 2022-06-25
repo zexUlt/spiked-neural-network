@@ -1,17 +1,16 @@
-#pragma once 
-
-#include <vector>
-#include "xtensor/xarray.hpp"
+#pragma once
 
 #include "xtensor-blas/xlinalg.hpp"
+#include "xtensor/xarray.hpp"
+#include "xtensor/xio.hpp"
 #include "xtensor/xnpy.hpp"
 #include "xtensor/xview.hpp"
 
 #include <chrono>
-#include <map>
-#include <string>
 #include <fstream>
 #include <istream>
-#include <unordered_map>
+#include <map>
 #include <memory>
-#include "xtensor/xio.hpp"
+#include <string>
+#include <unordered_map>
+#include <vector>
