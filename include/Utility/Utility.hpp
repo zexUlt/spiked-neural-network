@@ -92,7 +92,7 @@ public:
   static double mean_squared_error(xt::xarray<double> yTrue, xt::xarray<double> yPred)
   {
     xt::xarray<double> sq = xt::square(yTrue - yPred);
-    auto outputErrors    = xt::average(sq);
+    auto outputErrors     = xt::average(sq);
 
     return outputErrors();
   }
@@ -100,7 +100,7 @@ public:
   static double mean_absolute_error(xt::xarray<double> yTrue, xt::xarray<double> yPred)
   {
     xt::xarray<double> absol = xt::abs(yPred - yTrue);
-    auto outputErrors       = xt::average(absol);
+    auto outputErrors        = xt::average(absol);
 
     return outputErrors();
   }
@@ -151,7 +151,7 @@ public:
   static VlTrMap prepare_dataset(std::string trainingDataImportRoot)
   {
     using namespace xt::placeholders;
-    
+
     xt::xarray<double> trRaw         = xt::load_npy<double>(trainingDataImportRoot + "/tr_target.npy");
     xt::xarray<double> trTargetCoord = xt::view(trRaw, xt::range(1, _));
     xt::xarray<double> trTargetSpeed = xt::diff(trRaw, 1, 0) / 120.;
@@ -161,8 +161,10 @@ public:
     xt::xarray<double> vlTargetCoord = xt::view(vlRaw, xt::range(1, _));
     xt::xarray<double> vlTargetSpeed = xt::diff(vlRaw, 1, 0) / 120.;
     xt::xarray<double> vlTarget      = xt::concatenate(xt::xtuple(vlTargetCoord, vlTargetSpeed), 1);
-    xt::xarray<double> trControl     = xt::diff(xt::load_npy<double>(trainingDataImportRoot + "/tr_control.npy"), 1, 0) / 120.;
-    xt::xarray<double> vlControl     = xt::diff(xt::load_npy<double>(trainingDataImportRoot + "/vl_control.npy"), 1, 0) / 120.;
+    xt::xarray<double> trControl =
+      xt::diff(xt::load_npy<double>(trainingDataImportRoot + "/tr_control.npy"), 1, 0) / 120.;
+    xt::xarray<double> vlControl =
+      xt::diff(xt::load_npy<double>(trainingDataImportRoot + "/vl_control.npy"), 1, 0) / 120.;
 
     return {{"tr", {trTarget, trControl}}, {"vl", {vlTarget, vlControl}}};
   }
