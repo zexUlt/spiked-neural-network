@@ -4,6 +4,9 @@
 #include "SigmoidActivation.hpp"
 #include "IzhikevichActivation.hpp"
 
+#include "xtensor/xarray.hpp"
+#include "vector"
+
 namespace cxx_sdnn::optimization{
     auto setup_dnn(std::uint32_t targetDim, std::uint32_t controlDim, const TrainedParams& params, std::string neuronType)
     {
@@ -47,9 +50,9 @@ namespace cxx_sdnn::optimization{
         }
     }
 
-    double estimate_loss(const TrainedParams& params, std::string neuronType)
+    double estimate_loss(std::string trainingDataRoot, TrainedParams params, std::string neuronType)
     {
-        static auto trainData = UtilityFunctionLibrary::prepare_dataset()["tr"];
+        static auto trainData = UtilityFunctionLibrary::prepare_dataset(trainingDataRoot)["tr"];
         static auto targetDim = trainData.first.shape(1);
         static auto controlDim = trainData.second.shape(1);
 
@@ -66,6 +69,11 @@ namespace cxx_sdnn::optimization{
     double run_minimize(double a, double p, double k1, double k2, double alpha, std::string neuronType)
     {
         TrainedParams params{a, p, k1, k2, alpha};
-        return estimate_loss(params, neuronType);
+        return estimate_loss("" ,params, neuronType);
+    }
+
+    void dummy()
+    {
+        std::cout << "Hello World!\n";
     }
 };
