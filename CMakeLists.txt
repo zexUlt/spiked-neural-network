@@ -35,6 +35,7 @@ add_compile_options(
 #      SETTING UP PROJECT-SPECIFIC OPTIONS
 # =======================================
 option(ENABLE_HAND_TESTS "Disable linking of source code files except main.cpp in order to test external libs" OFF)
+option(SHARED_LIBRARY "Creates a shared library if ON, otherwise makes an executable" OFF)
 # =======================================
 
 # =======================================
@@ -98,7 +99,7 @@ list(APPEND PROJECT_SOURCES main.cpp)
 # =======================================
 if(NOT ENABLE_HAND_TESTS)
     message(STATUS "Configuring for full build")
-    file(GLOB files
+    file(GLOB_RECURSE files
         # RELATIVE ${PROJECT_SOURCE_DIR}
         ${SOURCE_CODE_DIR}/*.cpp
         ${SOURCE_INCLUDE_DIR}/*.hpp
@@ -108,15 +109,20 @@ if(NOT ENABLE_HAND_TESTS)
     foreach(file ${files})
         list(APPEND PROJECT_SOURCES ${file})
     endforeach()
+    message(STATUS "Collected source files: \n${PROJECT_SOURCES}")
 else()
     message(STATUS "Configuring for build only with main.cpp")
 endif()
 
-add_executable(
-    ${PROJECT_NAME} 
-    ${PROJECT_SOURCES}
-) 
-
+if(NOT SHARED_LIBRARY)
+    add_executable(
+        ${PROJECT_NAME} 
+        ${PROJECT_SOURCES}
+    )
+else()
+    list(REMOVE_ITEM PROJECT_SOURCES main.cpp)
+    add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES})
+endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 list(APPEND CMAKE_INCLUDE_PATH ${EXTERNAL_DEPS}/xtl/include)
@@ -128,8 +134,12 @@ target_include_directories(${PROJECT_NAME}
         ${EXTERNAL_DEPS}/xtl/include
         ${EXTERNAL_DEPS}/xtensor/include
         ${EXTERNAL_DEPS}/xtensor-blas/include
-    PUBLIC
+    PRIVATE
         ${SOURCE_INCLUDE_DIR}
+        ${SOURCE_INCLUDE_DIR}/ActivationFunctions
+        ${SOURCE_INCLUDE_DIR}/Utility
+        ${SOURCE_INCLUDE_DIR}/C_API
+        ${SOURCE_INCLUDE_DIR}/Optimization
 )
 
 target_link_directories(${PROJECT_NAME}
@@ -137,7 +147,7 @@ target_link_directories(${PROJECT_NAME}
         ${EXTERNAL_DEPS}/xtl
         ${EXTERNAL_DEPS}/xtensor
         ${EXTERNAL_DEPS}/xtensor-blas
-    PUBLIC
+    PRIVATE
         ${SOURCE_CODE_DIR}
 )
 
