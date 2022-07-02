@@ -1,4 +1,4 @@
-#include "SigmoidActivation.hpp"
+#include "ActivationFunctions/SigmoidActivation.hpp"
 
 using cxx_sdnn::SigmoidActivation;
 
@@ -11,7 +11,7 @@ xt::xarray<double> SigmoidActivation::operator()(xt::xarray<double> input, doubl
   return this->paramA /
            (this->paramB +
             this->paramC *
-              xt::exp(this->paramD * (xt::broadcast(input.reshape({this->shape[0], 1}), this->shape) - 4.))) +
+              xt::exp(this->paramD * (xt::broadcast(input.reshape({this->shape[0], 1}), this->shape)))) +
          this->paramE;
 }
 
@@ -20,7 +20,7 @@ xt::xarray<double> SigmoidActivation::operator()(xt::xarray<double> input, doubl
   return this->paramA /
            (this->paramB +
             this->paramC *
-              xt::exp(this->paramD * (xt::broadcast(input.reshape({this->shape[0], 1}), this->shape) - 4.))) +
+              xt::exp(this->paramD * (xt::broadcast(input.reshape({this->shape[0], 1}), this->shape)))) +
          this->paramE;
 }
 

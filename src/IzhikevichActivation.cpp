@@ -1,6 +1,6 @@
-#include "IzhikevichActivation.hpp"
+#include "ActivationFunctions/IzhikevichActivation.hpp"
 
-#include "debug_header.hpp"
+#include "Utility/debug_header.hpp"
 
 #include "xtensor-blas/xlinalg.hpp"
 #include "xtensor/xmasked_view.hpp"
