@@ -13,4 +13,6 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <cmath>
 #include <vector>
+#include <limits>
