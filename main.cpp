@@ -7,50 +7,40 @@
 
 int main(int argc, char** argv)
 {
-  using namespace xt::placeholders;
-
-  xt::xarray<double> trRaw         = xt::load_npy<double>("../train_data/tr_target.npy");
-  xt::xarray<double> trTargetCoord = xt::view(trRaw, xt::range(1, _));
-  xt::xarray<double> trTargetSpeed = xt::diff(trRaw, 1, 0) / 120.;
-  xt::xarray<double> trTarget      = xt::concatenate(xt::xtuple(trTargetCoord, trTargetSpeed), 1);
-
-  xt::xarray<double> vlRaw         = xt::load_npy<double>("../train_data/vl_target.npy");
-  xt::xarray<double> vlTargetCoord = xt::view(vlRaw, xt::range(1, _));
-  xt::xarray<double> vlTargetSpeed = xt::diff(vlRaw, 1, 0) / 120.;
-  xt::xarray<double> vlTarget      = xt::concatenate(xt::xtuple(vlTargetCoord, vlTargetSpeed), 1);
-  xt::xarray<double> trControl     = xt::diff(xt::load_npy<double>("../train_data/tr_control.npy"), 1, 0) / 120.;
-  xt::xarray<double> vlControl     = xt::diff(xt::load_npy<double>("../train_data/vl_control.npy"), 1, 0) / 120.;
+  auto folds = UtilityFunctionLibrary::prepare_dataset();
 
   // const std::uint32_t width    = 4394u;
   // const std::int32_t split     = 3305;
+
   const std::uint32_t N_EPOCHS  = 2u;
   const std::uint32_t K_POINTS  = 3u;
   const double ALPHA            = 1.5;
   const double INTEGRATION_STEP = 0.0001;
 
-  std::uint32_t dim = trTarget.shape(1);
+  std::uint32_t targetDim = folds["tr"].first.shape(1);
+  std::uint32_t controlDim = folds["tr"].second.shape(1);
 
   std::unordered_map<std::string, xt::xarray<double>> modelParams{
-    {"W_1", 1000. * xt::ones<double>({dim, dim})},
-    {"W_2", 1000. * xt::ones<double>({dim, dim})},
+    {"W_1", 1000. * xt::ones<double>({targetDim, targetDim})},
+    {"W_2", 1000. * xt::ones<double>({targetDim, targetDim})},
     {"A", 10000 * xt::diag(xt::xarray<double>{-1., -1., -1., -1.})},
     {"P", 9000 * xt::diag(xt::xarray<double>{1., 1., 1., 1.})},
     {"K_1", 3000 * xt::diag(xt::xarray<double>{1., 1., 1., 1.})},
     {"K_2", 1000 * xt::diag(xt::xarray<double>{1., 1., 1., 1.})}};
 
-  // auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(50, 1/40., {2*dim, 1}, Izhi::NeuronType::Resonator);
-  // auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(55, 1/40., {2*dim, tr_control.shape(1)},
+  // auto izh_act_1 = UtilityFunctionLibrary::make_izhikevich(50, 1/40., {2*targetDim, 1}, Izhi::NeuronType::Resonator);
+  // auto izh_act_2 = UtilityFunctionLibrary::make_izhikevich(55, 1/40., {2*targetDim, controlDim},
   // Izhi::NeuronType::ThalamoCortical63);
 
   auto act1 = std::make_unique<cxx_sdnn::SigmoidActivation>(
-    /*shape=*/std::vector<size_t>{dim, 1},
+    /*shape=*/std::vector<size_t>{targetDim, 1},
     /*a =*/1.,
     /*b =*/1.,
     /*c =*/1,
     /*d =*/-1,
     /*e =*/-0.5);
   auto act2 = std::make_unique<cxx_sdnn::SigmoidActivation>(
-    /*shape=*/std::vector<size_t>{dim, trControl.shape(1)},
+    /*shape=*/std::vector<size_t>{targetDim, controlDim},
     /*a =*/1.,
     /*b =*/1.,
     /*c =*/1.,
@@ -58,11 +48,9 @@ int main(int argc, char** argv)
     /*e =*/-0.5);
 
   auto model =
-    UtilityFunctionLibrary::make_dnn(ALPHA, dim, std::move(act1), std::move(act2), modelParams, INTEGRATION_STEP);
+    UtilityFunctionLibrary::make_dnn(ALPHA, targetDim, std::move(act1), std::move(act2), modelParams);
 
-  UtilityFunctionLibrary::VlTrMap<double> folds{{"tr", {trTarget, trControl}}, {"vl", {vlTarget, vlControl}}};
-
-  auto res = UtilityFunctionLibrary::dnn_validate(std::move(model), folds, N_EPOCHS, K_POINTS);
+  auto res = UtilityFunctionLibrary::dnn_validate(std::move(model), folds, N_EPOCHS, K_POINTS, INTEGRATION_STEP);
 
   std::cout << res;
 
