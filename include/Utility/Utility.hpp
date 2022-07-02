@@ -105,25 +105,25 @@ public:
     return outputErrors();
   }
 
-  static void dump_data(xt::xarray<double> trTarget, xt::xarray<double> trControl, ValidationResults data)
-  {
-    auto error  = xt::abs(xt::col(trTarget, 0) - xt::col(data.trEst[0], 0));
-    auto wdiff1 = xt::view(data.w1, xt::all(), xt::all(), 1);
-    auto wdiff2 = xt::view(data.w2, xt::all(), xt::all(), 1);
+  // static void dump_data(xt::xarray<double> trTarget, xt::xarray<double> trControl, ValidationResults data)
+  // {
+  //   auto error  = xt::abs(xt::col(trTarget, 0) - xt::col(data.trEst[0], 0));
+  //   auto wdiff1 = xt::view(data.w1, xt::all(), xt::all(), 1);
+  //   auto wdiff2 = xt::view(data.w2, xt::all(), xt::all(), 1);
 
-    std::cout << "Error: " << xt::average(error)() << "\n";
+  //   std::cout << "Error: " << xt::average(error)() << "\n";
 
-    xt::dump_npy("../plot_data/error.npy", xt::degrees(error));
-    xt::dump_npy("../plot_data/control.npy", xt::degrees(trControl));
-    xt::dump_npy("../plot_data/target.npy", xt::degrees(xt::col(trTarget, 0)));
-    xt::dump_npy("../plot_data/estimation.npy", xt::degrees(xt::col(data.trEst[0], 0)));
-    xt::dump_npy("../plot_data/target2.npy", xt::degrees(xt::col(trTarget, 1)));
-    xt::dump_npy("../plot_data/estimation2.npy", xt::degrees(xt::col(data.trEst[0], 1)));
-    xt::dump_npy("../plot_data/wdiff1.npy", wdiff1);
-    xt::dump_npy("../plot_data/wdiff2.npy", wdiff2);
-    xt::dump_npy("../plot_data/neuro1.npy", data.n1);
-    xt::dump_npy("../plot_data/neuro2.npy", data.n2);
-  }
+  //   xt::dump_npy(plotDataExportRoot + "/error.npy", xt::degrees(error));
+  //   xt::dump_npy(plotDataExportRoot + "/control.npy", xt::degrees(trControl));
+  //   xt::dump_npy(plotDataExportRoot + "/target.npy", xt::degrees(xt::col(trTarget, 0)));
+  //   xt::dump_npy(plotDataExportRoot + "/estimation.npy", xt::degrees(xt::col(data.trEst[0], 0)));
+  //   xt::dump_npy(plotDataExportRoot + "/target2.npy", xt::degrees(xt::col(trTarget, 1)));
+  //   xt::dump_npy(plotDataExportRoot + "/estimation2.npy", xt::degrees(xt::col(data.trEst[0], 1)));
+  //   xt::dump_npy(plotDataExportRoot + "/wdiff1.npy", wdiff1);
+  //   xt::dump_npy(plotDataExportRoot + "/wdiff2.npy", wdiff2);
+  //   xt::dump_npy(plotDataExportRoot + "/neuro1.npy", data.n1);
+  //   xt::dump_npy(plotDataExportRoot + "/neuro2.npy", data.n2);
+  // }
 
   static double timeit(std::function<void(void)> foo, std::uint32_t count = 1)
   {
@@ -148,21 +148,21 @@ public:
       kwargs["K_2"], alpha);
   }
 
-  static VlTrMap prepare_dataset()
+  static VlTrMap prepare_dataset(std::string trainingDataImportRoot)
   {
     using namespace xt::placeholders;
     
-    xt::xarray<double> trRaw         = xt::load_npy<double>("../train_data/tr_target.npy");
+    xt::xarray<double> trRaw         = xt::load_npy<double>(trainingDataImportRoot + "/tr_target.npy");
     xt::xarray<double> trTargetCoord = xt::view(trRaw, xt::range(1, _));
     xt::xarray<double> trTargetSpeed = xt::diff(trRaw, 1, 0) / 120.;
     xt::xarray<double> trTarget      = xt::concatenate(xt::xtuple(trTargetCoord, trTargetSpeed), 1);
 
-    xt::xarray<double> vlRaw         = xt::load_npy<double>("../train_data/vl_target.npy");
+    xt::xarray<double> vlRaw         = xt::load_npy<double>(trainingDataImportRoot + "/vl_target.npy");
     xt::xarray<double> vlTargetCoord = xt::view(vlRaw, xt::range(1, _));
     xt::xarray<double> vlTargetSpeed = xt::diff(vlRaw, 1, 0) / 120.;
     xt::xarray<double> vlTarget      = xt::concatenate(xt::xtuple(vlTargetCoord, vlTargetSpeed), 1);
-    xt::xarray<double> trControl     = xt::diff(xt::load_npy<double>("../train_data/tr_control.npy"), 1, 0) / 120.;
-    xt::xarray<double> vlControl     = xt::diff(xt::load_npy<double>("../train_data/vl_control.npy"), 1, 0) / 120.;
+    xt::xarray<double> trControl     = xt::diff(xt::load_npy<double>(trainingDataImportRoot + "/tr_control.npy"), 1, 0) / 120.;
+    xt::xarray<double> vlControl     = xt::diff(xt::load_npy<double>(trainingDataImportRoot + "/vl_control.npy"), 1, 0) / 120.;
 
     return {{"tr", {trTarget, trControl}}, {"vl", {vlTarget, vlControl}}};
   }
