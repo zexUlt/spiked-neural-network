@@ -1,11 +1,8 @@
 #include "SpikeDNNet.hpp"
 
-#include "AbstractActivation.hpp"
-#include "Utility.hpp"
-#include "debug_header.hpp"
-
-#include <xtensor-blas/xlinalg.hpp>
-#include <xtensor/xview.hpp>
+#include "ActivationFunctions/AbstractActivation.hpp"
+#include "Utility/Utility.hpp"
+#include "Utility/debug_header.hpp"
 
 using cxx_sdnn::SpikeDNNet;
 
@@ -80,6 +77,8 @@ xt::xarray<double> SpikeDNNet::fit(
 
   this->arrayHistW1 = xt::ones<double>({nt + 1, this->matW1.shape(0), this->matW1.shape(1)});
   this->arrayHistW2 = xt::ones<double>({nt + 1, this->matW1.shape(0), this->matW1.shape(1)});
+
+  this->deltaHist = xt::zeros<double>({nt, this->matDim});
 
   xt::view(this->arrayHistW1, 0).assign(this->matW1);
   xt::view(this->arrayHistW2, 0).assign(this->matW2);
@@ -173,6 +172,8 @@ xt::xarray<double> SpikeDNNet::fit(
       xt::view(this->arrayHistW1, i + 1).assign(this->matW1);
       xt::view(this->arrayHistW2, i + 1).assign(this->matW2);
 
+      xt::view(this->deltaHist, i).assign(currentDelta);
+
       xt::view(this->neuron1Hist, i).assign(neuronOut1);
       xt::view(this->neuron2Hist, i).assign(neuronOut2);
     }
@@ -207,6 +208,44 @@ xt::xarray<double> SpikeDNNet::predict(xt::xarray<double> initState, xt::xarray<
 
   return vecEst;
 }
+
+double SpikeDNNet::integral_loss()
+{
+  double loss{0.};
+
+  auto w1Mean = xt::mean(this->arrayHistW1, 0);
+  auto w2Mean = xt::mean(this->arrayHistW2, 0);
+  auto timeSamples = this->arrayHistW1.shape(0);
+
+  for(auto i = 0u; i < timeSamples; ++i){
+    auto dW1 = xt::view(this->arrayHistW1, i) - w1Mean;
+    auto trace1 = xt::sum(
+      xt::diagonal(
+        xt::linalg::dot(
+          xt::transpose(dW1),
+          dW1)))();
+    
+    auto dW2 = xt::view(this->arrayHistW2, i) - w2Mean;
+    auto trace2 = xt::sum(
+      xt::diagonal(
+        xt::linalg::dot(
+          xt::transpose(dW2),
+          dW2)))();
+    
+    auto pDelta = xt::linalg::dot(
+      xt::linalg::dot(
+        xt::transpose(xt::view(this->deltaHist, i)),
+        this->matP),
+      xt::view(this->deltaHist, i))();
+
+    loss += pDelta + trace1 + trace2;
+  }
+
+  loss /= timeSamples;
+
+  return loss;
+}
+
 
 xt::xarray<double> SpikeDNNet::get_weights(std::uint8_t idx) const
 {

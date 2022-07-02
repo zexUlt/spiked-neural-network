@@ -27,6 +27,7 @@ namespace cxx_sdnn
     xt::xarray<double> smoothedW2;
     xt::xarray<double> neuron1Hist;
     xt::xarray<double> neuron2Hist;
+    xt::xarray<double> deltaHist;
 
   public:
     explicit SpikeDNNet(
@@ -50,6 +51,8 @@ namespace cxx_sdnn
       std::uint32_t kPoints = 2);
 
     xt::xarray<double> predict(xt::xarray<double> initState, xt::xarray<double> vecU, double step = .01);
+
+    double integral_loss();
 
     xt::xarray<double> get_weights(std::uint8_t idx) const;
 
