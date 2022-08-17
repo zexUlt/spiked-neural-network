@@ -29,6 +29,15 @@ namespace cxx_sdnn
     xt::xarray<double> neuron2Hist;
     xt::xarray<double> deltaHist;
 
+    void euler_integrate(xt::xarray<double>& vecEst, const xt::xarray<double>& vecU, const xt::xarray<double>& vecX,
+      const xt::xarray<double>& matWTr1, const xt::xarray<double>& matWTr2, size_t nt, double step);
+
+    void implicitRK_integrate(xt::xarray<double>& vecEst, const xt::xarray<double>& vecU, const xt::xarray<double>& vecX,
+      const xt::xarray<double>& matWTr1, const xt::xarray<double>& matWTr2, size_t nt, double step);
+
+    void ode45(xt::xarray<double>& vecEst, const xt::xarray<double>& vecU, const xt::xarray<double>& vecX,
+      const xt::xarray<double>& matWTr1, const xt::xarray<double>& matWTr2, size_t nt, double step);
+
   public:
     explicit SpikeDNNet(
       std::unique_ptr<AbstractActivation> actFunc1, std::unique_ptr<AbstractActivation> actFunc2,
