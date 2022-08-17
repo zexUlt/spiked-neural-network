@@ -6,15 +6,15 @@ SigmoidActivation::SigmoidActivation(std::vector<size_t> shape, double a, double
   Super(shape), paramA{a}, paramB{b}, paramC{c}, paramD{d}, paramE{e}
 {}
 
-xt::xarray<double> SigmoidActivation::operator()(xt::xarray<double> input, double step = -1.)
+xt::xarray<double> SigmoidActivation::operator()(xt::xarray<double> input)
 {
   return this->paramA /
            (this->paramB +
-            this->paramC * xt::exp(this->paramD * (xt::broadcast(input.reshape({this->shape[0], 1}), this->shape)))) +
+            this->paramC * xt::exp(this->paramD * (xt::broadcast(input.reshape({this->shape[0], 1}), this->shape)))) + 
          this->paramE;
 }
 
-xt::xarray<double> SigmoidActivation::operator()(xt::xarray<double> input, double step = -1.) const
+xt::xarray<double> SigmoidActivation::operator()(xt::xarray<double> input) const
 {
   return this->paramA /
            (this->paramB +

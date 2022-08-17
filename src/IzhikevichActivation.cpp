@@ -12,7 +12,7 @@ IzhikevichActivation::IzhikevichActivation(
   double iScale, double oScale, double izhBorder, double a, double b, double c, double d, double e,
   std::vector<size_t> shape) :
   Super(shape),
-  inputScale{iScale}, outputScale{oScale}, izhBorder{izhBorder}, paramA{a}, paramB{b}, paramC{c}, paramD{d}, paramE{e}
+  inputScale{iScale}, outputScale{oScale}, izhBorder{izhBorder}, paramA{a}, paramB{b}, paramC{c}, paramD{d}, paramE{e}, step{0.01}
 {
   control = xt::eval(xt::ones<double>(shape) * paramB * paramE);
   state   = xt::eval(xt::ones<double>(shape) * paramE);
@@ -38,7 +38,7 @@ IzhikevichActivation::IzhikevichActivation(std::vector<size_t> shape) :
 IzhikevichActivation::IzhikevichActivation() : IzhikevichActivation(80., 1 / 60., 30, 2e-2, 0.2, -65, 8, -65, {2})
 {}
 
-xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, double step = .01)
+xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input)
 {
   xt::xarray<double> vecScale = xt::ones<double>(this->shape);
   xt::xarray<double> curInput =
@@ -69,7 +69,7 @@ xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, do
   return this->state * this->outputScale;
 }
 
-xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, double step) const
+xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input) const
 {
   xt::xarray<double> vecScale = xt::ones<double>(this->shape);
   xt::xarray<double> curInput =
@@ -109,6 +109,11 @@ xt::xarray<double> IzhikevichActivation::operator()(xt::xarray<double> input, do
 void IzhikevichActivation::set_type(NeuronType newType)
 {
   this->type = newType;
+}
+
+void IzhikevichActivation::set_integration_step(double new_step)
+{
+  this->step = new_step;
 }
 
 const std::string IzhikevichActivation::whoami() const
@@ -170,8 +175,8 @@ const std::string IzhikevichActivation::whoami() const
   return out;
 }
 
-std::unique_ptr<cxx_sdnn::IzhikevichActivation>
-make_izhikevich(double inputScale, double outputScale, std::vector<size_t> shape, IzhikevichActivation::NeuronType type)
+std::unique_ptr<cxx_sdnn::IzhikevichActivation> cxx_sdnn::make_izhikevich(
+  double inputScale, double outputScale, std::vector<size_t> shape, IzhikevichActivation::NeuronType type)
 {
   using Izhi = IzhikevichActivation;
   std::unique_ptr<Izhi> out;
