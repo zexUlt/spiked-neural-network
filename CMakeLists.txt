@@ -114,6 +114,8 @@ else()
     message(STATUS "Configuring for build only with main.cpp")
 endif()
 
+set(TARGET_NAME ${PROJECT_NAME})
+
 if(NOT SHARED_LIBRARY)
     add_executable(
         ${PROJECT_NAME} 
@@ -121,7 +123,8 @@ if(NOT SHARED_LIBRARY)
     )
 else()
     list(REMOVE_ITEM PROJECT_SOURCES main.cpp)
-    add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES})
+    add_library(sdnn SHARED ${PROJECT_SOURCES})
+    set(TARGET_NAME "sdnn")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -129,12 +132,12 @@ list(APPEND CMAKE_INCLUDE_PATH ${EXTERNAL_DEPS}/xtl/include)
 list(APPEND CMAKE_INCLUDE_PATH ${EXTERNAL_DEPS}/xtensor/include)
 list(APPEND CMAKE_INCLUDE_PATH ${EXTERNAL_DEPS}/xtensor-blas/include)
 
-target_include_directories(${PROJECT_NAME}
-    PUBLIC
+target_include_directories(${TARGET_NAME}
+    INTERFACE
         ${EXTERNAL_DEPS}/xtl/include
+    PUBLIC
         ${EXTERNAL_DEPS}/xtensor/include
         ${EXTERNAL_DEPS}/xtensor-blas/include
-    PRIVATE
         ${SOURCE_INCLUDE_DIR}
         ${SOURCE_INCLUDE_DIR}/ActivationFunctions
         ${SOURCE_INCLUDE_DIR}/Utility
@@ -142,30 +145,30 @@ target_include_directories(${PROJECT_NAME}
         ${SOURCE_INCLUDE_DIR}/Optimization
 )
 
-target_link_directories(${PROJECT_NAME}
-    PUBLIC 
+target_link_directories(${TARGET_NAME}
+    INTERFACE 
         ${EXTERNAL_DEPS}/xtl
+    PUBLIC
         ${EXTERNAL_DEPS}/xtensor
         ${EXTERNAL_DEPS}/xtensor-blas
-    PRIVATE
         ${SOURCE_CODE_DIR}
 )
 
-target_link_libraries(${PROJECT_NAME} 
-    INTERFACE 
-        xtensor
-        xtensor::optimize
-        xtensor-blas
+target_link_libraries(${TARGET_NAME}
     PUBLIC 
+        xtensor
+        xtensor-blas
         ${BLAS_LIBRARIES}
         ${LAPACK_LIBRARIES}
+    INTERFACE 
+        xtensor::optimize
 )
 
 # =======================================
 #    SETTING UP PRECOMPILED HEADERS
 # =======================================
-target_precompile_headers(${PROJECT_NAME}
-    PRIVATE
+target_precompile_headers(${TARGET_NAME}
+    PUBLIC
         ${SOURCE_INCLUDE_DIR}/precompiled.hpp
 )
 # =======================================
