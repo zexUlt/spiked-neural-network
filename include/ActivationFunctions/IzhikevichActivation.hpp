@@ -34,10 +34,11 @@ namespace cxx_sdnn
 
     explicit IzhikevichActivation();
 
-    xt::xarray<double> operator()(xt::xarray<double> input, double step) override;
-    xt::xarray<double> operator()(xt::xarray<double> input, double step) const override;
+    xt::xarray<double> operator()(xt::xarray<double> input) override;
+    xt::xarray<double> operator()(xt::xarray<double> input) const override;
     const std::string whoami() const override;
     void set_type(NeuronType newType);
+    void set_integration_step(double new_step);
 
   private:
     typedef AbstractActivation Super;
@@ -50,6 +51,7 @@ namespace cxx_sdnn
     double paramC;
     double paramD;
     double paramE;
+    double step;
     xt::xarray<double> control;
     xt::xarray<double> state;
     NeuronType type = NeuronType::CUSTOM;

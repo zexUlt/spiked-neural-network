@@ -17,8 +17,8 @@ namespace cxx_sdnn
   public:
     explicit SigmoidActivation(
       std::vector<size_t> shape, double a = 1., double b = 1., double c = .02, double d = -.02, double e = -1.);
-    xt::xarray<double> operator()(xt::xarray<double> input, double step) override;
-    xt::xarray<double> operator()(xt::xarray<double> input, double step) const override;
+    xt::xarray<double> operator()(xt::xarray<double> input) override;
+    xt::xarray<double> operator()(xt::xarray<double> input) const override;
     const std::string whoami() const override;
   };
 
