@@ -368,99 +368,135 @@ void SpikeDNNet::ode45(
 {
   xt::xarray<double> neuronOut1, neuronOut2;
   xt::xarray<double> currentVecU;
+  xt::xarray<double> currentEst;
 
-  constexpr double h = 2.;
+  xt::xarray<double> estK1, estK2, estK3, estK4;
+  xt::xarray<double> W1K1, W1K2, W1K3, W1K4;
+  xt::xarray<double> W2K1, W2K2, W2K3, W2K4;
 
-  auto estimationRHS = [this, &neuronOut1, &neuronOut2, &currentVecU](size_t t, xt::xarray<double> x) -> xt::xarray<double> 
-  {
-    return xt::squeeze(xt::linalg::dot(this->matA, xt::view(x, t))) + 
-           xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1)) +
-           xt::linalg::dot(xt::linalg::dot(this->matW2, neuronOut2), currentVecU);
-  };
+  // RK4 integration
+  for(size_t i = 0u; i < nt - 1; ++i) {
+    currentEst  = xt::view(vecEst, i);
+    currentVecU = xt::view(vecU, i);
 
-  auto W1RHS = [this, &neuronOut1](size_t t, xt::xarray<double> delta) -> xt::xarray<double>
-  {
-    return -xt::linalg::dot(
-      xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), delta),
-      xt::transpose(neuronOut1));
-  };
+    neuronOut1 = (*this->afunc1)(currentEst);
+    neuronOut2 = (*this->afunc2)(currentEst);
 
-  auto W2RHS = [this, &neuronOut2, &currentVecU](size_t t, xt::xarray<double> delta)
-  {
-    return -xt::linalg::dot(
+    xt::xarray<double> vecEstNext = xt::view(vecEst, i + 1);
+
+    xt::xarray<double> W1from = this->matW1;
+    xt::xarray<double> W2from = this->matW2;
+
+    /********** K1 BEGIN ************/
+    estK1 = xt::squeeze(xt::linalg::dot(this->matA, currentEst)) +
+            xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1)) +
+            xt::linalg::dot(xt::linalg::dot(this->matW2, neuronOut2), currentVecU);
+
+    xt::xarray<double> delta = currentEst - xt::view(vecX, i);
+
+    W1K1 = -xt::linalg::dot(
+      xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), delta.reshape({-1, 1})), xt::transpose(neuronOut1));
+
+    W2K1 = -xt::linalg::dot(
       xt::linalg::dot(
-        xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), delta),
+        xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), delta.reshape({-1, 1})),
         currentVecU.reshape({1, -1})),
       xt::transpose(neuronOut2));
-  };
+    /********** K1 END ************/
 
-  RungeKutta4NonAdapt estimationIntegrator(estimationRHS);
-  RungeKutta4NonAdapt W1Integrator(W1RHS);
-  RungeKutta4NonAdapt W2Integrator(W2RHS);
+    vecEstNext  = currentEst + step * RungeKutta4NonAdapt::a21 * estK1;
+    this->matW1 = W1from + step * RungeKutta4NonAdapt::a21 * W1K1;
+    this->matW2 = W2from + step * RungeKutta4NonAdapt::a21 * W2K1;
 
-  // Get first 3 points approximation for RK4
-  for(size_t i = 0u; i < 4u; ++i){
-    xt::xarray<double> currentVecEst = xt::view(vecEst, i);
-    currentVecU   = xt::view(vecU, i);
-    xt::xarray<double> currentDelta  = currentVecEst - xt::view(vecX, i);
+    /********** K2 BEGIN ************/
 
-    auto neuronOut1 = (*this->afunc1)(currentVecEst);
-    auto neuronOut2 = (*this->afunc2)(currentVecEst);
+    neuronOut1 = (*this->afunc1)(vecEstNext);
+    neuronOut2 = (*this->afunc2)(vecEstNext);
 
-    auto vecEstNext = xt::view(vecEst, i + 1u); // vec_est[i + 1]
+    // Due to in-place effect of xt::xarray::reshape()
+    // Need to squeeze dimentions (1, 3) -> (3, )
+    xt::xarray<double> midVecU = xt::squeeze(currentVecU + xt::view(vecU, i + 1)) / 2.; // f(t + h / 2, y)
 
-    vecEstNext = currentVecEst + step * (xt::squeeze(xt::linalg::dot(this->matA, currentVecEst)) +
-                                         xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1)) +
-                                         xt::linalg::dot(xt::linalg::dot(this->matW2, neuronOut2), currentVecU));
+    estK2 = xt::squeeze(xt::linalg::dot(this->matA, vecEstNext)) +
+            xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1)) +
+            xt::linalg::dot(xt::linalg::dot(this->matW2, neuronOut2), midVecU);
 
-    // Calculating right-hand sides of dWi/dt
-    xt::xarray<double> rhsW1 =
-      -xt::linalg::dot(
-        xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), currentDelta.reshape({-1, 1})), // (4, ) -> (4, 1)
-        xt::transpose(neuronOut1));
+    delta = vecEstNext - (xt::view(vecX, i) + xt::view(vecX, i + 1)) / 2.;
 
-    xt::xarray<double> rhsW2 =
-      -xt::linalg::dot(
-        xt::linalg::dot(
-          xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), currentDelta.reshape({-1, 1})),
-          currentVecU.reshape({1, -1})),
-        xt::transpose(neuronOut2));
+    W1K2 = -xt::linalg::dot(
+      xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), delta.reshape({-1, 1})), xt::transpose(neuronOut1));
 
-    this->matW1 = this->matW1 + step * rhsW1;
-    this->matW2 = this->matW2 + step * rhsW2;
+    W2K2 = -xt::linalg::dot(
+      xt::linalg::dot(
+        xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), delta.reshape({-1, 1})), midVecU.reshape({1, -1})),
+      xt::transpose(neuronOut2));
+    /********** K2 END **************/
 
-    xt::view(this->arrayHistW1, i + 1).assign(this->matW1);
-    xt::view(this->arrayHistW2, i + 1).assign(this->matW2);
+    vecEstNext  = currentEst + step * RungeKutta4NonAdapt::a32 * estK2;
+    this->matW1 = W1from + step * RungeKutta4NonAdapt::a32 * W1K2;
+    this->matW2 = W2from + step * RungeKutta4NonAdapt::a32 * W2K2;
 
-    xt::view(this->deltaHist, i).assign(xt::squeeze(currentDelta));
+    /********** K3 BEGIN ************/
+
+    neuronOut1 = (*this->afunc1)(vecEstNext);
+    neuronOut2 = (*this->afunc2)(vecEstNext);
+
+    estK3 = xt::squeeze(xt::linalg::dot(this->matA, vecEstNext)) +
+            xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1)) +
+            xt::linalg::dot(xt::linalg::dot(this->matW2, neuronOut2), xt::squeeze(midVecU)); // Same as in line 449
+
+    delta = vecEstNext - (xt::view(vecX, i) + xt::view(vecX, i + 1)) / 2.;
+
+    W1K3 = -xt::linalg::dot(
+      xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), delta.reshape({-1, 1})), xt::transpose(neuronOut1));
+
+    W2K3 = -xt::linalg::dot(
+      xt::linalg::dot(
+        xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), delta.reshape({-1, 1})), midVecU.reshape({1, -1})),
+      xt::transpose(neuronOut2));
+
+    /********** K3 END **************/
+
+    vecEstNext  = currentEst + step * RungeKutta4NonAdapt::a43 * estK3;
+    this->matW1 = W1from + step * RungeKutta4NonAdapt::a43 * W1K3;
+    this->matW2 = W2from + step * RungeKutta4NonAdapt::a43 * W2K3;
+
+    /********** K4 BEGIN ************/
+
+    neuronOut1 = (*this->afunc1)(vecEstNext);
+    neuronOut2 = (*this->afunc2)(vecEstNext);
+
+    xt::xarray<double> nextVecU = xt::view(vecU, i + 1);
+
+    estK4 = xt::squeeze(xt::linalg::dot(this->matA, vecEstNext)) +
+            xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1)) +
+            xt::linalg::dot(xt::linalg::dot(this->matW2, neuronOut2), nextVecU);
+
+    delta = vecEstNext - xt::view(vecX, i + 1);
+
+    W1K4 = -xt::linalg::dot(
+      xt::linalg::dot(xt::linalg::dot(this->matK1, this->matP), delta.reshape({-1, 1})), xt::transpose(neuronOut1));
+
+    W2K4 = -xt::linalg::dot(
+      xt::linalg::dot(
+        xt::linalg::dot(xt::linalg::dot(this->matK2, this->matP), delta.reshape({-1, 1})), nextVecU.reshape({1, -1})),
+      xt::transpose(neuronOut2));
+    /********** K4 END **************/
+
+    vecEstNext  = currentEst + step * (RungeKutta4NonAdapt::b1 * estK1 + RungeKutta4NonAdapt::b2 * estK2 +
+                                      RungeKutta4NonAdapt::b3 * estK3 + RungeKutta4NonAdapt::b4 * estK4);
+    this->matW1 = W1from + step * (RungeKutta4NonAdapt::b1 * W1K1 + RungeKutta4NonAdapt::b2 * W1K2 +
+                                   RungeKutta4NonAdapt::b3 * W1K3 + RungeKutta4NonAdapt::b4 * W1K4);
+    this->matW2 = W2from + step * (RungeKutta4NonAdapt::b1 * W2K1 + RungeKutta4NonAdapt::b2 * W2K2 +
+                                   RungeKutta4NonAdapt::b3 * W2K3 + RungeKutta4NonAdapt::b4 * W2K4);
+
+    xt::view(this->deltaHist, i).assign(xt::squeeze(delta));
 
     xt::view(this->neuron1Hist, i).assign(neuronOut1);
     xt::view(this->neuron2Hist, i).assign(neuronOut2);
-  }
 
-  // RK4 integration
-  for(size_t i = 0u; i < nt - static_cast<size_t>(h) - 1; ++i){
-    xt::xarray<double> currentVecEst = xt::view(vecEst, i);
-    xt::xarray<double> currentDelta = currentVecEst - xt::view(vecX, i);
-
-    currentVecU = xt::view(vecU, i);
-
-    auto neuronOut1 = (*this->afunc1)(currentVecEst);
-    auto neuronOut2 = (*this->afunc2)(currentVecEst);
-
-    xt::xarray<double> vecEstNext = xt::view(vecEst, i + static_cast<size_t>(h));
-    
-    estimationIntegrator.step(vecEst, i, h, vecEstNext);
-    W1Integrator.step(this->arrayHistW1, i, h, this->matW1); // ???
-    W2Integrator.step(this->arrayHistW2, i, h, this->matW2); // ???
-
-    xt::view(this->arrayHistW1, i + 1 + static_cast<size_t>(h)).assign(this->matW1);
-    xt::view(this->arrayHistW2, i + 1 + static_cast<size_t>(h)).assign(this->matW2);
-
-    xt::view(this->deltaHist, i + static_cast<size_t>(h)).assign(xt::squeeze(currentDelta));
-
-    xt::view(this->neuron1Hist, i + static_cast<size_t>(h)).assign(neuronOut1);
-    xt::view(this->neuron2Hist, i + static_cast<size_t>(h)).assign(neuronOut2);
+    xt::view(this->arrayHistW1, i + 1).assign(this->matW1);
+    xt::view(this->arrayHistW2, i + 1).assign(this->matW2);
   }
 }
 /******** PRIVATE SECTION END ********/
