@@ -60,6 +60,7 @@ double RungeKutta5Adapt::step(const xt::xarray<double>& from, double t, double h
   // k6 = f(t + c6 * h, out)
   out = from + h * (RungeKutta5Adapt::b1 * this->k1 + RungeKutta5Adapt::b2 * this->k2 + RungeKutta5Adapt::b3 * this->k3 + RungeKutta5Adapt::b4 * this->k4 +
                     RungeKutta5Adapt::b5 * this->k5 + RungeKutta5Adapt::b6 * this->k6);
+  return 0.;
 }
 
 void RungeKutta5Adapt::integrate(xt::xarray<double>& point, double timeStart, double timeEnd)
@@ -131,7 +132,7 @@ constexpr double RungeKutta4NonAdapt::b4;
 
 // }
 
-RungeKutta4NonAdapt::RungeKutta4NonAdapt(std::function<xt::xarray<double>(size_t, xt::xarray<double>)> rhs) :
+RungeKutta4NonAdapt::RungeKutta4NonAdapt(std::function<xt::xarray<double>(size_t, xt::xarray<double>)> rhs) noexcept :
     f_1{rhs}
 {
 
@@ -154,7 +155,7 @@ RungeKutta4NonAdapt::RungeKutta4NonAdapt(std::function<xt::xarray<double>(size_t
 // }
 
 void RungeKutta4NonAdapt::step(const xt::xarray<double>& from, size_t t, double h, xt::xarray<double>& out)
-{
+{   
     // k1 = f(t, from)
     k1 = this->f_1(t, from);
     out = from + h * RungeKutta4NonAdapt::a21 * this->k1;
