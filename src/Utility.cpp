@@ -81,7 +81,7 @@ double UtilityFunctionLibrary::mean_absolute_error(xt::xarray<double> yTrue, xt:
   return outputErrors();
 }
 
-void UtilityFunctionLibrary::dump_data(std::string plotDataExportRoot, xt::xarray<double> trTarget, xt::xarray<double> trControl, 
+void UtilityFunctionLibrary::dump_data(std::string&& plotDataExportRoot, xt::xarray<double> trTarget, xt::xarray<double> trControl, 
     ValidationResults data)
 {
   auto error  = xt::abs(xt::col(trTarget, 0) - xt::col(data.trEst[0], 0));

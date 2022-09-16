@@ -41,7 +41,7 @@ namespace cxx_sdnn
 
     static double mean_absolute_error(xt::xarray<double> yTrue, xt::xarray<double> yPred);
 
-    static void dump_data(std::string plotDataExportRoot, xt::xarray<double> trTarget, xt::xarray<double> trControl, ValidationResults data);
+    static void dump_data(std::string&& plotDataExportRoot, xt::xarray<double> trTarget, xt::xarray<double> trControl, ValidationResults data);
 
     static double timeit(std::function<void(void)> foo, std::uint32_t count = 1);
 
