@@ -9,7 +9,6 @@
 #include "xtensor/xarray.hpp"
 
 #include <memory>
-#include <vector>
 
 namespace cxx_sdnn
 {

@@ -1,6 +1,7 @@
 #pragma once
 // #include "precompiled.hpp"
-#include "string"
+#include <string>
+#include <vector>
 
 namespace cxx_sdnn
 {
