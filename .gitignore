@@ -1,7 +1,8 @@
 build/
+sdnn/
+plot_data/
 .vscode/
+
 dmp
 *.log
 *.png
-sdnn/
-plot_data/
