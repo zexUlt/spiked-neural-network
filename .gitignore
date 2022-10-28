@@ -4,3 +4,4 @@ dmp
 *.log
 *.png
 sdnn/
+plot_data/
