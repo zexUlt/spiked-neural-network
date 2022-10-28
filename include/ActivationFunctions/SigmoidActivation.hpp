@@ -6,7 +6,7 @@ namespace cxx_sdnn
 {
   class SigmoidActivation : public AbstractActivation {
   private:
-    typedef AbstractActivation Super;
+    using Super = AbstractActivation;
 
     double paramA;
     double paramB;
