@@ -85,8 +85,8 @@ void UtilityFunctionLibrary::dump_data(std::string&& plotDataExportRoot, xt::xar
     ValidationResults data)
 {
   auto error  = xt::abs(xt::col(trTarget, 0) - xt::col(data.trEst[0], 0));
-  auto wdiff1 = xt::view(data.w1, xt::all(), xt::all(), 1);
-  auto wdiff2 = xt::view(data.w2, xt::all(), xt::all(), 1);
+  // auto wdiff1 = xt::view(data.w1, xt::all(), xt::all(), 1);
+  // auto wdiff2 = xt::view(data.w2, xt::all(), xt::all(), 1);
 
   std::cout << "Error: " << xt::average(error)() << "\n";
 
@@ -96,8 +96,8 @@ void UtilityFunctionLibrary::dump_data(std::string&& plotDataExportRoot, xt::xar
   xt::dump_npy(plotDataExportRoot + "/estimation.npy", xt::degrees(xt::col(data.trEst[0], 0)));
   xt::dump_npy(plotDataExportRoot + "/target2.npy", xt::degrees(xt::col(trTarget, 1)));
   xt::dump_npy(plotDataExportRoot + "/estimation2.npy", xt::degrees(xt::col(data.trEst[0], 1)));
-  xt::dump_npy(plotDataExportRoot + "/wdiff1.npy", wdiff1);
-  xt::dump_npy(plotDataExportRoot + "/wdiff2.npy", wdiff2);
+  xt::dump_npy(plotDataExportRoot + "/wdiff1.npy", data.w1);
+  xt::dump_npy(plotDataExportRoot + "/wdiff2.npy", data.w2);
   xt::dump_npy(plotDataExportRoot + "/neuro1.npy", data.n1);
   xt::dump_npy(plotDataExportRoot + "/neuro2.npy", data.n2);
 }
@@ -131,17 +131,17 @@ VlTrMap UtilityFunctionLibrary::prepare_dataset(std::string trainingDataImportRo
 
   xt::xarray<double> trRaw         = xt::load_npy<double>(trainingDataImportRoot + "/tr_target.npy");
   xt::xarray<double> trTargetCoord = xt::view(trRaw, xt::range(1, _));
-  xt::xarray<double> trTargetSpeed = xt::diff(trRaw, 1, 0) / 120.;
+  xt::xarray<double> trTargetSpeed = xt::diff(trRaw, 1, 0) * 120.;
   xt::xarray<double> trTarget      = xt::concatenate(xt::xtuple(trTargetCoord, trTargetSpeed), 1);
 
   xt::xarray<double> vlRaw         = xt::load_npy<double>(trainingDataImportRoot + "/vl_target.npy");
   xt::xarray<double> vlTargetCoord = xt::view(vlRaw, xt::range(1, _));
-  xt::xarray<double> vlTargetSpeed = xt::diff(vlRaw, 1, 0) / 120.;
+  xt::xarray<double> vlTargetSpeed = xt::diff(vlRaw, 1, 0) * 120.;
   xt::xarray<double> vlTarget      = xt::concatenate(xt::xtuple(vlTargetCoord, vlTargetSpeed), 1);
   xt::xarray<double> trControl =
-    xt::diff(xt::load_npy<double>(trainingDataImportRoot + "/tr_control.npy"), 1, 0) / 120.;
+    xt::diff(xt::load_npy<double>(trainingDataImportRoot + "/tr_control.npy"), 1, 0) * 120.;
   xt::xarray<double> vlControl =
-    xt::diff(xt::load_npy<double>(trainingDataImportRoot + "/vl_control.npy"), 1, 0) / 120.;
+    xt::diff(xt::load_npy<double>(trainingDataImportRoot + "/vl_control.npy"), 1, 0) * 120.;
 
   return {{"tr", {trTarget, trControl}}, {"vl", {vlTarget, vlControl}}};
 }

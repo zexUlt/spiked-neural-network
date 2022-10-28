@@ -415,7 +415,7 @@ void SpikeDNNet::ode45(
 
     // Due to in-place effect of xt::xarray::reshape()
     // Need to squeeze dimentions (1, 3) -> (3, )
-    xt::xarray<double> midVecU = xt::squeeze(currentVecU + xt::view(vecU, i + 1)) / 2.; // f(t + h / 2, y)
+    xt::xarray<double> midVecU = xt::squeeze(currentVecU + xt::view(vecU, i + 1)) / 2.; 
 
     estK2 = xt::squeeze(xt::linalg::dot(this->matA, vecEstNext)) +
             xt::squeeze(xt::linalg::dot(this->matW1, neuronOut1)) +
