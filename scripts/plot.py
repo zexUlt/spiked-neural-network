@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 
 PATH_PREFIX = "./plots/"
 
-plt.rcParams.update({
-        "text.usetex" : True,
-        "font.family" : "Helvetica"
-})
-plt.rcParams['text.latex.preamble'] = r'\usepackage[utf8]{inputenc}\usepackage[T2A]{fontenc}\usepackage[russian]{babel}'
+# plt.rcParams.update({
+#         "text.usetex" : True,
+#         "font.family" : "Helvetica"
+# })
+# plt.rcParams['text.latex.preamble'] = r'\usepackage[utf8]{inputenc}\usepackage[T2A]{fontenc}\usepackage[russian]{babel}'
 
 time = np.linspace(0, 4394, 4394)[:3304] / 110
 tr_target = np.load('plot_data/target.npy')
@@ -16,11 +16,12 @@ tr_est = np.load('plot_data/estimation.npy')
 error = np.load('plot_data/error.npy')
 tr_target_2 = np.load('plot_data/target2.npy')
 tr_est_2 = np.load('plot_data/estimation2.npy')
-wdiff1 = np.load('plot_data/wdiff1.npy').reshape(-1 ,2)
-wdiff2 = np.load('plot_data/wdiff2.npy').reshape(-1 ,2)
+w1 = np.load('plot_data/wdiff1.npy')
+w2 = np.load('plot_data/wdiff2.npy')
 neuro1 = np.squeeze(np.load('plot_data/neuro1.npy'))
 neuro2 = np.load('plot_data/neuro2.npy')
 
+print(w1.shape, w2.shape)
 
 fig1, axs1 = plt.subplots(2, 1, figsize=(16, 8))
 fig2, axs2 = plt.subplots(2, 1, figsize=(16, 8))
@@ -54,12 +55,12 @@ axs1[1].plot(time,
         lw='2')
 
 axs2[0].plot(time[:-1],
-        wdiff1[:, 0][:3303],
+        np.linalg.norm(w1, axis=(1, 2))[:3303],
         color=(165/255, 172/255, 175/255),
         lw='2')
 
 axs3[0].plot(time[:-1],
-        wdiff2[:, 1][:3303],
+        np.linalg.norm(w2, axis=(1, 2))[:3303],
         color='tab:blue',
         lw='2')
 
@@ -108,26 +109,26 @@ axs5.plot(time,
         lw='2')
 
 axs4[0].plot(time[0], tr_est[0], 'o', color='tab:orange', label='_nolegend_')
-axs4[0].annotate(r"$\displaystyle \hat{\zeta}(0) = " + "{:.4f}".format(tr_est[0]) + "$", 
-                xycoords='data',
-                xy=(time[0], tr_est[0]),
-                xytext=(-40, 40),
-                textcoords='offset points',
-                verticalalignment='bottom',
-                arrowprops=dict(arrowstyle='-'),
-                clip_on=True
-                )
+# axs4[0].annotate(r"$\displaystyle \hat{\zeta}(0) = " + "{:.4f}".format(tr_est[0]) + "$", 
+#                 xycoords='data',
+#                 xy=(time[0], tr_est[0]),
+#                 xytext=(-40, 40),
+#                 textcoords='offset points',
+#                 verticalalignment='bottom',
+#                 arrowprops=dict(arrowstyle='-'),
+#                 clip_on=True
+#                 )
 
 axs4[1].plot(time[0], tr_est_2[0], 'o', color='tab:orange', label='_nolegend_')
-axs4[1].annotate(r"$\displaystyle \hat{\zeta}(0) = " + "{:.4f}".format(tr_est_2[0]) + "$", 
-                xycoords='data',
-                xy=(time[0], tr_est_2[0]),
-                xytext=(-40, 40),
-                textcoords='offset points',
-                verticalalignment='bottom',
-                arrowprops=dict(arrowstyle='-'),
-                clip_on=True
-                )
+# axs4[1].annotate(r"$\displaystyle \hat{\zeta}(0) = " + "{:.4f}".format(tr_est_2[0]) + "$", 
+#                 xycoords='data',
+#                 xy=(time[0], tr_est_2[0]),
+#                 xytext=(-40, 40),
+#                 textcoords='offset points',
+#                 verticalalignment='bottom',
+#                 arrowprops=dict(arrowstyle='-'),
+#                 clip_on=True
+#                 )
 
 axs1[1].set_xlabel('Время (с)', fontsize=15)
 # axs1[1, 1].set_xlabel('Время (с)', fontsize=15)
@@ -142,8 +143,8 @@ axs1[0].set_ylabel("Угол поворота левого глаза (°)", fon
 axs1[1].set_ylabel("Угол поворота правого глаза (°)", fontsize=15)
 # axs1.set_ylabel('Ошибка (°)', fontsize=15)
 
-axs2[1].set_ylabel(r'Выход $\displaystyle \phi_1$', fontsize=15)
-axs3[1].set_ylabel(r'Выход $\displaystyle \phi_2$', fontsize=15)
+# axs2[1].set_ylabel(r'Выход $\displaystyle \phi_1$', fontsize=15)
+# axs3[1].set_ylabel(r'Выход $\displaystyle \phi_2$', fontsize=15)
 
 axs4[0].set_ylabel("Угол поворота левого глаза (°)", fontsize=15)
 axs4[1].set_ylabel("Угол поворота правого глаза (°)", fontsize=15)
@@ -160,8 +161,8 @@ axs1[1].legend(['Идентификация', 'Экспериментальны�
 # axs4[0].legend(['Идентификация', 'Экспериментальные данные'])
 axs4[1].legend(['Идентификация', 'Экспериментальные данные'])
 
-axs2[0].legend([r'$\displaystyle W_1$'])
-axs3[0].legend([r'$\displaystyle W_2$'])
+# axs2[0].legend([r'$\displaystyle W_1$'])
+# axs3[0].legend([r'$\displaystyle W_2$'])
 
 
 plt.tight_layout()
